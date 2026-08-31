@@ -42,7 +42,7 @@ app.get('/projects', async (req, res) => {
     res.render('projects', { title });
 });
 
-const server = app.listen(PORT, '127.0.0.1', () => {
-    console.log(`Server is running at http://127.0.0.1:${PORT}`);
+const server = app.listen(PORT, () => {
+    console.log(`Server is runnin on port ${PORT}`);
     console.log(`Environment: ${NODE_ENV}`);
 });
