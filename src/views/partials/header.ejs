@@ -1,20 +1,65 @@
+<!-- LOGIC: Declares the document type as standard HTML5 for modern web browser parsing. -->
+<!-- LEARNING GAP: Ensures consistent, standard rendering mode across different browsers. -->
 <!DOCTYPE html>
+
+<!-- LOGIC: Sets the root HTML element and defines the primary language as English. -->
+<!-- LEARNING GAP: Improves web accessibility (a11y) and helps search engine crawlers index the page properly. -->
 <html lang="en">
 
+<!-- LOGIC: Contains head metadata that is processed by the browser before rendering the page. -->
+<!-- LEARNING GAP: Separates hidden configuration and resource links from the visible page content. -->
+
 <head>
+    <!-- LOGIC: Sets the character encoding standard to UTF-8. -->
+    <!-- LEARNING GAP: Guarantees that special characters, symbols, and text render accurately without breaking. -->
     <meta charset="UTF-8">
+
+    <!-- LOGIC: Sets the browser viewport width to match the user's device screen. -->
+    <!-- LEARNING GAP: Enables responsive design so layouts scale smoothly across mobile phones, tablets, and desktops. -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- LOGIC: Evaluates the dynamic "title" variable passed from Express route handlers in server.js. -->
+    <!-- LEARNING GAP: Demonstrates how server-side state dynamically updates the browser tab title for each distinct page. -->
     <title>
         <%= title %>
     </title>
+
+    <!-- LOGIC: Links the global static stylesheet located in the public assets directory. -->
+    <!-- LEARNING GAP: Express static middleware serves files directly from /public, separating presentation styles from template structures. -->
     <link rel="stylesheet" href="/css/main.css">
+    <!-- LOGIC: Closes the metadata container. -->
+    <!-- LEARNING GAP: Prevents metadata elements from leaking into the body tree. -->
 </head>
 
+<!-- LOGIC: Opens the visible document body that visitors interact with. -->
+<!-- LEARNING GAP: All structural UI elements must live inside body tags to comply with valid HTML DOM tree standards. -->
+
 <body>
+
+    <!-- LOGIC: Creates a semantic navigation container wrapping main site links. -->
+    <!-- LEARNING GAP: Using <nav> instead of generic <div> tags improves accessibility and search engine optimization (SEO). -->
     <nav>
+        <!-- LOGIC: Initializes an unordered list structure to group navigation links. -->
+        <!-- LEARNING GAP: Provides a clean semantic tree for CSS layout styling (Flexbox or Grid). -->
         <ul>
+            <!-- LOGIC: Link pointing to the root route ("/") handled by Express. -->
+            <!-- LEARNING GAP: Triggers an HTTP GET request to server.js for the home view. -->
             <li><a href="/">Home</a></li>
+
+            <!-- LOGIC: Link pointing to the "/organizations" route. -->
+            <!-- LEARNING GAP: Routes visitor requests directly to the organizations view handler. -->
             <li><a href="/organizations">Organizations</a></li>
+
+            <!-- LOGIC: Link pointing to the "/projects" route. -->
+            <!-- LEARNING GAP: Connects the project view template directly to server route logic. -->
             <li><a href="/projects">Projects</a></li>
+
+            <!-- LOGIC: Link pointing to the new "/categories" route. -->
+            <!-- LEARNING GAP: Expands site architecture by mapping new UI entry points to Express route listeners. -->
+            <li><a href="/categories">Categories</a></li>
+            <!-- LOGIC: Closes the navigation link list. -->
+            <!-- LEARNING GAP: Ensures valid list element nesting. -->
         </ul>
+        <!-- LOGIC: Closes the navigation container. -->
+        <!-- LEARNING GAP: Maintains clean modular code separation before view templates insert main body content. -->
     </nav>

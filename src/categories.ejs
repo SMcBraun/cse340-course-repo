@@ -1,0 +1,49 @@
+<!-- LOGIC: Embeds external UI code into this template. -->
+<!-- LEARNING GAP: Keeps us from copying and pasting header HTML on every single page. -->
+<%- include('partials/header') %>
+
+    <!-- LOGIC: Wraps the unique page content inside a semantic HTML tag. -->
+    <!-- LEARNING GAP: Helps screen readers and search engines understand where the main page content lives. -->
+    <main>
+
+        <!-- LOGIC: Pulls the dynamic variable sent from server.js and outputs text. -->
+        <!-- LEARNING GAP: <%= %> evaluates JavaScript and safely displays data inside the HTML layout. -->
+        <h1>
+            <%= title %>
+        </h1>
+
+        <!-- LOGIC: Provides static introductory text for site visitors. -->
+        <!-- LEARNING GAP: Connects the big header title to the itemized list below. -->
+        <p>Explore our service project categories:</p>
+
+        <!-- LOGIC: Initializes an unordered list element structure. -->
+        <!-- LEARNING GAP: Groups individual list items so CSS can style them as a cohesive unit. -->
+        <ul>
+
+            <!-- LOGIC: Renders a single list item node for Environmental projects. -->
+            <!-- LEARNING GAP: Fulfills the assignment requirement to display categories as structured list data. -->
+            <li>Environmental</li>
+
+            <!-- LOGIC: Renders a single list item node for Educational projects. -->
+            <!-- LEARNING GAP: Demonstrates how static arrays or lists are represented in EJS views. -->
+            <li>Educational</li>
+
+            <!-- LOGIC: Renders a single list item node for Community Service projects. -->
+            <!-- LEARNING GAP: Adds content diversity to prove the layout scales properly. -->
+            <li>Community Service</li>
+
+            <!-- LOGIC: Renders a single list item node for Health and Wellness projects. -->
+            <!-- LEARNING GAP: Completes the required placeholder data set for the view. -->
+            <li>Health and Wellness</li>
+
+            <!-- LOGIC: Closes the unordered list element structure. -->
+            <!-- LEARNING GAP: Prevents HTML layout breaking by properly terminating open tags. -->
+        </ul>
+
+        <!-- LOGIC: Closes the primary semantic content container. -->
+        <!-- LEARNING GAP: Maintains valid HTML tree structure across different view templates. -->
+    </main>
+
+    <!-- LOGIC: Embeds external footer UI code into the bottom of this template. -->
+    <!-- LEARNING GAP: Ensures consistent copyright and footer information across all views without duplication. -->
+    <%- include('partials/footer') %>
