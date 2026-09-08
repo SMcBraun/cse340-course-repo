@@ -1,5 +1,6 @@
 import { testConnection } from './src/models/db.js';
 import { getAllOrganizations } from './src/models/organizations.js';
+import { getAllProjects } from './src/models/projects.js';
 
 
 
@@ -96,18 +97,18 @@ app.get('/organizations', async (req, res) => {
 });
 
 
-
-
-// LOGIC: Registers an async HTTP GET route handler for '/projects'.
-// LEARNING GAP: Expands application routing architecture following a consistent design pattern.
+// LOGIC: Route handler for the service projects page.
+// PURPOSE: Fetches joined project data from the model and passes it to the EJS template.
 app.get('/projects', async (req, res) => {
-    // LOGIC: Assigns a string variable holding the page title.
-    // LEARNING GAP: Maintains dynamic data passing across all project views.
+    // Await the asynchronous database query
+    const projects = await getAllProjects();
+
     const title = 'Service Projects';
-    // LOGIC: Renders the projects.ejs template.
-    // LEARNING GAP: Delivers the project list view HTML to the client browser.
-    res.render('projects', { title });
+
+    // Send the data array into the EJS template
+    res.render('projects', { title, projects });
 });
+
 
 // LOGIC: Registers a new async HTTP GET route handler for '/categories'.
 // LEARNING GAP: Completes assignment expansion requirements by linking the new UI page to server execution logic.

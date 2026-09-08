@@ -1,12 +1,31 @@
+<!-- LOGIC: Embeds the common navigation header layout. -->
+<!-- VALUE: Keeps site styling and links consistent across all pages. -->
 <%- include('partials/header') %>
+
+    <!-- LOGIC: Main semantic layout container for accessibility and structure. -->
     <main>
+        <!-- LOGIC: Renders the dynamic title passed from server.js. -->
         <h1>
             <%= title %>
         </h1>
+
+        <p>Explore upcoming service opportunities with our partner organizations:</p>
+
+        <!-- LOGIC: Unordered list containing the database records. -->
         <ul>
-            <li>Park Cleanup - Join us to clean up local parks and make them beautiful!</li>
-            <li>Food Drive - Help collect and distribute food to those in need.</li>
-            <li>Community Tutoring - Volunteer to tutor students in various subjects.</li>
+            <!-- LOGIC: Iterates over each project object retrieved from the database. -->
+            <!-- LEARNING GAP: Required assignment format: Date: Project Title (Organization Name). -->
+            <% projects.forEach(project=> { %>
+                <li>
+                    <strong>
+                        <%= new Date(project.project_date).toLocaleDateString('en-US', { year: 'numeric' ,
+                            month: 'short' , day: 'numeric' }) %>:
+                    </strong>
+                    <%= project.title %> (<%= project.organization_name %>)
+                </li>
+                <% }); %>
         </ul>
     </main>
+
+    <!-- LOGIC: Embeds the standard site-wide footer. -->
     <%- include('partials/footer') %>
