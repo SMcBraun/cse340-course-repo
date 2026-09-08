@@ -1,5 +1,13 @@
+import { testConnection } from './src/models/db.js';
+
+
+
+// Milestone 1: Modern Module Integration (The Building Blocks)
 // LOGIC: Imports the core Express framework using ESM syntax.
-// LEARNING GAP: Switches from legacy CommonJS (require) to modern ES Modules (import), aligning with current JavaScript standards.
+// LEARNING GAP: Switches from legacy CommonJS (require) to modern ES Modules (import), aligning with current 
+// JavaScript standards. Understanding the shift from legacy CommonJS (require) to modern ES MOdules(Import, and 
+// handling absolute paths manually since _dirname isnt availabe by defaul tin ESM.
+
 import express from 'express';
 
 // LOGIC: Imports a utility function from the Node.js URL module to convert module file URLs to file paths.
@@ -10,8 +18,11 @@ import { fileURLToPath } from 'url';
 // LEARNING GAP: Prevents broken path errors caused by OS differences (e.g., Windows backslashes vs. Linux forward slashes).
 import path from 'path';
 
+// Milestone 2: Environment Hosting Mechanics (The Infrastruture)
 // LOGIC: Reads the environment variable NODE_ENV or defaults to 'production' if undefined.
-// LEARNING GAP: Demonstrates how servers adapt behavior based on host configuration environments (e.g., local development vs. Render hosting).
+// LEARNING GAP: Realizin that production servers (like Render) Demonstrates how servers adapt behavior based on
+// host configuration environments (e.g., local development vs. Render hosting). Students learn not to hardcode ports
+// or env modes, preventing deployment crashes.
 const NODE_ENV = process.env.NODE_ENV?.toLowerCase() || 'production';
 
 // LOGIC: Reads the PORT environment variable assigned by the hosting provider or defaults to local port 3000.
@@ -26,19 +37,24 @@ const __filename = fileURLToPath(import.meta.url);
 // LEARNING GAP: Establishes a relative anchor point to locate views and static folders regardless of where the app is launched.
 const __dirname = path.dirname(__filename);
 
-// LOGIC: Initializes a new Express application instance.
-// LEARNING GAP: Creates the core server object that manages middleware, routing, and HTTP responses.
+// Milestone 3: Server Instantiation(The Engine)LOGIC: Initializes a new Express application instance.
+// LEARNING GAP: Creates the core server object that manages middleware, routing, and HTTP responses. Distinguishing between
+// the abstract Express framework and a concrente application instance. This line creates the "BRAIN" that will eventually 
+// hold configurations, middleware, and routes.
 const app = express();
 
 /**
-  * Configure Express middleware
+  * Milestone 4: Global Middleware Configuration
   */
 
-// LOGIC: Mounts static file serving middleware targeting the 'public' directory.
-// LEARNING GAP: Instructs Express to serve CSS, images, and client JS directly without needing individual route handlers for every file.
+// LOGIC: Recongizing that a server needs automated "interceptors" to process assets or layouts globally
+// before specific URL routes handl them. Mounts static file serving middleware targeting the 'public' directory.
+// LEARNING GAP: Instructs Express to serve CSS, images, and client JS directly without needing individual route 
+// handlers for every file. Serve static files automatically without writing individual routes for every image/CSS file.
 app.use(express.static('public'));
 
-// LOGIC: Sets EJS as the default template rendering engine for the Express app.
+// LOGIC: Sets EJS as the default template rendering engine for the Express app. Tell the engine how to compile dynamic 
+// blueprints into browser-ready HTML
 // LEARNING GAP: Allows Express to parse .ejs files and render server-side HTML dynamically using res.render().
 app.set('view engine', 'ejs');
 
@@ -50,8 +66,12 @@ app.set('views', path.join(__dirname, 'src/views'));
   * Routes
   */
 
+// MILESTONE 5: Core Application Routing (The Maps & Endpoints)
+//Learning Gap: Mastering the core app.METHOD(PATH, HANDLER) structure. Students learn how the server 
+//intercepts specific URLs, isolates execution scope, and passes server-side variables into EJS views.
+// Route 1: The Root Entry Point
 // LOGIC: Registers an async HTTP GET route handler for the root path ('/').
-// LEARNING GAP: Connects the base website URL request directly to the home template rendering logic.
+
 app.get('/', async (req, res) => {
     // LOGIC: Assigns a string variable holding the page title.
     // LEARNING GAP: Demonstrates passing dynamic server state into EJS templates.
@@ -96,11 +116,12 @@ app.get('/categories', async (req, res) => {
 
 // LOGIC: Binds and listens for incoming connections on the specified PORT.
 // LEARNING GAP: Converts the configured Express application into an active, running server accepting requests.
-const server = app.listen(PORT, () => {
-    // LOGIC: Logs server startup success and active port to the console.
-    // LEARNING GAP: Provides developer feedback in terminal logs confirming local or remote execution status.
-    console.log(`Server is running on port ${PORT}`);
-    // LOGIC: Logs the active environment mode to the console.
-    // LEARNING GAP: Confirms whether the app is executing under development or production rules.
-    console.log(`Environment: ${NODE_ENV}`);
+const server = app.listen(PORT, async () => {
+    try {
+        await testConnection();
+        console.log(`Server is running at http://127.0.0.1:${PORT}`);
+        console.log(`Environment: ${NODE_ENV}`);
+    } catch (error) {
+        console.error('Error connecting to the database:', error);
+    }
 });
