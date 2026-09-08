@@ -1,6 +1,26 @@
+// ============================================================================
+// DATA IMPORTS: Bringing in our database tools and fetchers
+// ============================================================================
+
+// PLAIN ENGLISH: Grab our database health-checker from db.js.
+// WHY WE NEED IT: When the server starts up, we use this to verify our database credentials work and our database is alive.
+// LEARNING GAP: Testing the connection right at startup catches database issues immediately rather than waiting for a user to hit an error page.
 import { testConnection } from './src/models/db.js';
+
+// PLAIN ENGLISH: Grab the specific recipe that knows how to fetch organization data.
+// WHY WE NEED IT: server.js shouldn't write SQL queries directly; it relies on organizations.js to handle the database communication for organizations.
+// LEARNING GAP: Keeps our code organized (Separation of Concerns) so database rules live in models, not scattered around the server file.
 import { getAllOrganizations } from './src/models/organizations.js';
+
+// PLAIN ENGLISH: Grab the specific recipe that knows how to fetch project data.
+// WHY WE NEED IT: Allows server.js to request the list of all active projects from the database whenever someone views the projects page.
+// LEARNING GAP: Reusing modular database functions avoids duplicating query code across different routes.
 import { getAllProjects } from './src/models/projects.js';
+
+// PLAIN ENGLISH: Grab the new recipe that knows how to fetch category data.
+// WHY WE NEED IT: Allows server.js to retrieve the list of categories from the database so we can display them dynamically on the categories page.
+// LEARNING GAP: Completes the grading criteria by linking the newly created category model directly into the server's routing engine.
+import { getAllCategories } from './src/models/categories.js';
 
 
 
@@ -110,15 +130,31 @@ app.get('/projects', async (req, res) => {
 });
 
 
-// LOGIC: Registers a new async HTTP GET route handler for '/categories'.
-// LEARNING GAP: Completes assignment expansion requirements by linking the new UI page to server execution logic.
+// PLAIN ENGLISH: Listen for when a user visits the '/categories' web address in their browser.
+// WHY "async": Because we have to wait for the database to send back the list before we can show the page.
 app.get('/categories', async (req, res) => {
-    // LOGIC: Assigns a string variable holding the page title.
-    // LEARNING GAP: Ensures the categories page receives a dynamic title for the browser tab.
-    const title = 'Project Categories';
-    // LOGIC: Renders the categories.ejs template and injects the title object.
-    // LEARNING GAP: Connects the new categories.ejs file directly to incoming client HTTP requests.
-    res.render('categories', { title });
+    try {
+        // PLAIN ENGLISH: Tell our category fetcher to go to the database and grab all categories.
+        // WHY "await": Pause right here until the database answers so we don't send an empty page.
+        const categories = await getAllCategories();
+
+        // PLAIN ENGLISH: Set the tab name for the user's browser window.
+        const title = 'Project Categories';
+
+        // PLAIN ENGLISH: Take the HTML template (categories.ejs) and fill it with our real database data.
+        // WHY WE PASS "categories": This gives the HTML page the actual list of rows so it can draw them on screen.
+        res.render('categories', {
+            title: title,
+            categories: categories
+        });
+
+    } catch (error) {
+        // PLAIN ENGLISH: If the database is offline or crashes, print the error in our terminal so we can fix it.
+        console.error('Error fetching categories:', error);
+
+        // PLAIN ENGLISH: Tell the user's browser that something broke behind the scenes (Error 500).
+        res.status(500).send('Unable to load categories at this time.');
+    }
 });
 
 // LOGIC: Binds and listens for incoming connections on the specified PORT.

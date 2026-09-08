@@ -19,25 +19,21 @@
         <!-- LOGIC: Initializes an unordered list element structure. -->
         <!-- LEARNING GAP: Groups individual list items so CSS can style them as a cohesive unit. -->
         <ul>
-
-            <!-- LOGIC: Renders a single list item node for Environmental projects. -->
-            <!-- LEARNING GAP: Fulfills the assignment requirement to display categories as structured list data. -->
-            <li>Environmental</li>
-
-            <!-- LOGIC: Renders a single list item node for Educational projects. -->
-            <!-- LEARNING GAP: Demonstrates how static arrays or lists are represented in EJS views. -->
-            <li>Educational</li>
-
-            <!-- LOGIC: Renders a single list item node for Community Service projects. -->
-            <!-- LEARNING GAP: Adds content diversity to prove the layout scales properly. -->
-            <li>Community Service</li>
-
-            <!-- LOGIC: Renders a single list item node for Health and Wellness projects. -->
-            <!-- LEARNING GAP: Completes the required placeholder data set for the view. -->
-            <li>Health and Wellness</li>
-
-            <!-- LOGIC: Closes the unordered list element structure. -->
-            <!-- LEARNING GAP: Prevents HTML layout breaking by properly terminating open tags. -->
+            <!-- LOGIC: Loops through the dynamic array of categories passed from server.js. -->
+            <!-- LEARNING GAP: Replaces hardcoded placeholder list items with automated database-driven output. -->
+            <% categories.forEach(category=> { %>
+                <!-- LOGIC: Renders a single list item node populated with the category name from the database. -->
+                <!-- LEARNING GAP: Reads the 'name' column property directly from the row object sent by PostgreSQL. -->
+                <li>
+                    <strong>
+                        <%= category.name %>
+                    </strong>
+                </li>
+                <!-- LOGIC: Closes the JavaScript iteration block. -->
+                <!-- LEARNING GAP: Prevents EJS rendering exceptions by ensuring balanced execution tags. -->
+                <% }); %>
+                    <!-- LOGIC: Closes the unordered list element structure. -->
+                    <!-- LEARNING GAP: Prevents HTML layout breaking by properly terminating open tags. -->
         </ul>
 
         <!-- LOGIC: Closes the primary semantic content container. -->
