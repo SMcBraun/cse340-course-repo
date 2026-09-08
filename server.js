@@ -1,4 +1,5 @@
 import { testConnection } from './src/models/db.js';
+import { getAllOrganizations } from './src/models/organizations.js';
 
 
 
@@ -81,16 +82,21 @@ app.get('/', async (req, res) => {
     res.render('home', { title });
 });
 
-// LOGIC: Registers an async HTTP GET route handler for '/organizations'.
-// LEARNING GAP: Maps specific URL endpoints to distinct view templates across the application.
+// Handle requests to /organizations
+// 'async' allows us to wait for database operations inside this function
 app.get('/organizations', async (req, res) => {
-    // LOGIC: Assigns a string variable holding the page title.
-    // LEARNING GAP: Dynamically customizes page metadata per route.
+    // Wait for the database query to finish and return the rows
+    const organizations = await getAllOrganizations();
+
+    // Define the page title
     const title = 'Our Partner Organizations';
-    // LOGIC: Renders the organizations.ejs template.
-    // LEARNING GAP: Reuses the single EJS render mechanism to output distinct page content.
-    res.render('organizations', { title });
+
+    // Send both the title and the database results to the EJS template
+    res.render('organizations', { title, organizations });
 });
+
+
+
 
 // LOGIC: Registers an async HTTP GET route handler for '/projects'.
 // LEARNING GAP: Expands application routing architecture following a consistent design pattern.
