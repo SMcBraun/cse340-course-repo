@@ -1,31 +1,49 @@
-<!-- LOGIC: Embeds the common navigation header layout. -->
-<!-- VALUE: Keeps site styling and links consistent across all pages. -->
 <%- include('partials/header') %>
 
-    <!-- LOGIC: Main semantic layout container for accessibility and structure. -->
-    <main>
-        <!-- LOGIC: Renders the dynamic title passed from server.js. -->
-        <h1>
-            <%= title %>
-        </h1>
+<!--
+====================================================================
+FILE: src/views/projects.ejs
+PURPOSE:
+View template that displays the collection of upcoming service projects, 
+providing two-way navigation links to both individual project details 
+and partner organization profiles.
 
-        <p>Explore upcoming service opportunities with our partner organizations:</p>
+PLAIN ENGLISH:
+Loop over every upcoming project supplied by our controller and generate 
+an HTML list item for each one, linking both the title and the sponsor.
 
-        <!-- LOGIC: Unordered list containing the database records. -->
-        <ul>
-            <!-- LOGIC: Iterates over each project object retrieved from the database. -->
-            <!-- LEARNING GAP: Required assignment format: Date: Project Title (Organization Name). -->
-            <% projects.forEach(project=> { %>
-                <li>
-                    <strong>
-                        <%= new Date(project.project_date).toLocaleDateString('en-US', { year: 'numeric' ,
-                            month: 'short' , day: 'numeric' }) %>:
-                    </strong>
-                    <%= project.title %> (<%= project.organization_name %>)
-                </li>
-                <% }); %>
-        </ul>
-    </main>
+LOGIC:
+Runs an inline JavaScript Array.prototype.forEach loop through the 'projects' array.
+Dynamically builds route parameter URLs (/project/:id and /organization/:id).
 
-    <!-- LOGIC: Embeds the standard site-wide footer. -->
-    <%- include('partials/footer') %>
+WHY WE NEED IT:
+Provides central navigation between parent charities and child projects.
+
+LEARNING GAP:
+The view does not limit records to five. The SQL query (LIMIT 5) handles 
+data slicing at the database layer before passing it down.
+====================================================================
+-->
+
+<main>
+    <h1><%= title %></h1>
+
+    <p>Here are our upcoming service projects:</p>
+
+    <ul>
+        <% projects.forEach(project => { %>
+            <li>
+                <a href="/project/<%= project.project_id %>">
+                    <strong><%= project.title %></strong>
+                </a>
+                — Organized by: 
+                <a href="/organization/<%= project.organization_id %>">
+                    <%= project.organization_name %>
+                </a>
+                (<%= new Date(project.project_date).toLocaleDateString() %>)
+            </li>
+        <% }); %>
+    </ul>
+</main>
+
+<%- include('partials/footer') %>

@@ -2,27 +2,27 @@
 ====================================================================
 FILE: src/models/projects.js
 PURPOSE:
-This file acts as our data model for Projects. It handles all direct 
-communication with the PostgreSQL database table for service projects.
+Data model for Service Projects. Handles SQL interactions with the 
+'project' table and relational JOINs with the 'organization' table.
 ====================================================================
 */
 
-// PLAIN ENGLISH: Import our custom database connection pool so we can query PostgreSQL.
-// LOGIC: Imports the db query client from ./db.js.
-// WHY WE NEED IT: Allows us to execute raw SQL statements against our database tables.
-// LEARNING GAP: Centralizes connection pooling in db.js rather than making individual connections.
+// PLAIN ENGLISH: Connect to our PostgreSQL database so we can run queries.
+// LOGIC: Imports the db connection pool helper from ./db.js.
+// WHY WE NEED IT: Allows model functions to run parameterized SQL against PostgreSQL tables.
+// LEARNING GAP: Centralized connection pooling handles database resources efficiently without leaking connections.
 import db from './db.js';
 
 // ============================================================================
-// ALL PROJECTS MODEL QUERY
+// ALL PROJECTS QUERY
 // ============================================================================
 
-// PLAIN ENGLISH: Fetch every single service project in the database.
-// LOGIC: An asynchronous query function executing a SELECT SQL statement on the 'project' table.
-// WHY WE NEED IT: Supplies the data for the /projects route so visitors can browse all opportunities.
-// LEARNING GAP: Models focus purely on executing data access logic and returning plain rows to controllers.
+// PLAIN ENGLISH: Retrieve all projects from the database.
+// LOGIC: Queries the project table and orders the records by project_date.
+// WHY WE NEED IT: Retains baseline capability to view the entire catalog of projects.
+// LEARNING GAP: Keeps legacy model logic available for reporting or admin listing needs.
 const getAllProjects = async () => {
-    const query = `
+  const query = `
       SELECT
         project_id,
         organization_id,
@@ -33,20 +33,20 @@ const getAllProjects = async () => {
       FROM project
       ORDER BY project_date;
     `;
-    const result = await db.query(query);
-    return result.rows;
+  const result = await db.query(query);
+  return result.rows;
 };
 
 // ============================================================================
-// PROJECTS BY ORGANIZATION MODEL QUERY
+// PROJECTS BY ORGANIZATION QUERY
 // ============================================================================
 
 // PLAIN ENGLISH: Retrieve only the service projects that belong to a specific organization.
-// LOGIC: Queries the 'project' table filtering by foreign key organization_id with parameterized SQL.
-// WHY WE NEED IT: Powers the organization details page so users see the projects affiliated with that group.
-// LEARNING GAP: Using parameterized queries ($1) ensures user inputs are never executed as malicious SQL injection.
+// LOGIC: Filters project records matching the foreign key organization_id parameter.
+// WHY WE NEED IT: Powers the organization details page so visitors see projects affiliated with that group.
+// LEARNING GAP: Parameterized placeholders ($1) prevent SQL injection vulnerabilities from dynamic route inputs.
 const getProjectsByOrganizationId = async (organizationId) => {
-    const query = `
+  const query = `
       SELECT
         project_id,
         organization_id,
@@ -58,19 +58,76 @@ const getProjectsByOrganizationId = async (organizationId) => {
       WHERE organization_id = $1
       ORDER BY project_date;
     `;
+  const queryParams = [organizationId];
+  const result = await db.query(query, queryParams);
+  return result.rows;
+};
 
-    const queryParams = [organizationId];
-    const result = await db.query(query, queryParams);
+// ============================================================================
+// UPCOMING PROJECTS QUERY (WITH TABLE JOIN)
+// ============================================================================
 
-    return result.rows;
+// PLAIN ENGLISH: Find the next few upcoming service projects whose dates have not yet passed, plus the name of the group running each project.
+// LOGIC: Executes an INNER JOIN between 'project' and 'organization' on organization_id, filtering for project_date >= CURRENT_DATE, sorted ascending, and limited by $1.
+// WHY WE NEED IT: Powers the main projects page so users see immediate upcoming volunteer opportunities rather than past dates.
+// LEARNING GAP: An INNER JOIN connects two relational tables using a foreign key relationship to fetch data across both entities in a single database round-trip.
+const getUpcomingProjects = async (number_of_projects) => {
+  const query = `
+      SELECT
+        p.project_id,
+        p.title,
+        p.description,
+        p.project_date,
+        p.location,
+        p.organization_id,
+        o.name AS organization_name
+      FROM project p
+      INNER JOIN organization o ON p.organization_id = o.organization_id
+      WHERE p.project_date >= CURRENT_DATE
+      ORDER BY p.project_date ASC
+      LIMIT $1;
+    `;
+  const queryParams = [number_of_projects];
+  const result = await db.query(query, queryParams);
+  return result.rows;
+};
+
+// ============================================================================
+// SINGLE PROJECT DETAILS QUERY (WITH TABLE JOIN)
+// ============================================================================
+
+// PLAIN ENGLISH: Fetch the full details of a single service project, along with its host organization's name.
+// LOGIC: Queries 'project' joined with 'organization' matching p.project_id with parameter $1.
+// WHY WE NEED IT: Powers the service project details view (/project/:id).
+// LEARNING GAP: Returning a single row object (or null) prevents views from having to handle array indexing.
+const getProjectDetails = async (id) => {
+  const query = `
+      SELECT
+        p.project_id,
+        p.title,
+        p.description,
+        p.project_date,
+        p.location,
+        p.organization_id,
+        o.name AS organization_name
+      FROM project p
+      INNER JOIN organization o ON p.organization_id = o.organization_id
+      WHERE p.project_id = $1;
+    `;
+  const queryParams = [id];
+  const result = await db.query(query, queryParams);
+  return result.rows.length > 0 ? result.rows[0] : null;
 };
 
 // ============================================================================
 // MODULE EXPORTS
 // ============================================================================
 
-// PLAIN ENGLISH: Export both project queries so controllers can call them.
-// LOGIC: Exports both functions using ES Module named export syntax.
-// WHY WE NEED IT: Makes both functions available to src/controllers/projects.js and src/controllers/organizations.js.
-// LEARNING GAP: Named exports allow multiple query helpers to be cleanly shared across different controllers.
-export { getAllProjects, getProjectsByOrganizationId };
+// PLAIN ENGLISH: Export model query functions for use across the controller layer.
+// LOGIC: Exports query functions via named ES Module syntax.
+export {
+  getAllProjects,
+  getProjectsByOrganizationId,
+  getUpcomingProjects,
+  getProjectDetails
+};

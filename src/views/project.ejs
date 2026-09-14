@@ -1,0 +1,53 @@
+<%- include('partials/header') %>
+
+<!--
+====================================================================
+FILE: src/views/project.ejs
+PURPOSE:
+View template that displays the granular details of a single service 
+project along with an interactive link to its parent organization.
+
+PLAIN ENGLISH:
+Display the specific service project's title, host organization, date,
+location, and description.
+
+LOGIC:
+Extracts properties from the single 'project' object passed by the 
+showProjectDetailsPage controller. Renders a link to /organization/:id.
+
+WHY WE NEED IT:
+Serves as the dedicated landing view for an individual service opportunity.
+
+LEARNING GAP:
+Because our model used an INNER JOIN, project.organization_name is already 
+available on the project object without executing an additional database query.
+====================================================================
+-->
+
+<main>
+    <h1><%= project.title %></h1>
+
+    <p>
+        <strong>Organization:</strong> 
+        <a href="/organization/<%= project.organization_id %>">
+            <%= project.organization_name %>
+        </a>
+    </p>
+
+    <p>
+        <strong>Date:</strong> 
+        <%= new Date(project.project_date).toLocaleDateString() %>
+    </p>
+
+    <p>
+        <strong>Location:</strong> 
+        <%= project.location %>
+    </p>
+
+    <p>
+        <strong>Description:</strong> 
+        <%= project.description %>
+    </p>
+</main>
+
+<%- include('partials/footer') %>

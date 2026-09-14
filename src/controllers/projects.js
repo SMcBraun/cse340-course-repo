@@ -2,55 +2,51 @@
 ====================================================================
 FILE: src/controllers/projects.js
 PURPOSE:
-Acts as the coordinator (Controller) between the projects data model 
-and the projects EJS view template.
+Coordinates data flow between the Project model and the project views.
 ====================================================================
 */
 
+// PLAIN ENGLISH: Import our database query methods for upcoming projects and single project lookups.
+// LOGIC: Imports getUpcomingProjects and getProjectDetails from the project model.
+// WHY WE NEED IT: Allows this controller to fetch dynamic service project datasets.
+// LEARNING GAP: Controllers orchestrate business logic; they never write SQL or access the database directly.
+import { getUpcomingProjects, getProjectDetails } from '../models/projects.js';
+
+// PLAIN ENGLISH: Define a configuration constant so we can change the limit in one place.
+// LOGIC: Constant holding the integer 5 to pass into the database LIMIT clause.
+// WHY WE NEED IT: Prevents "magic numbers" in our code and makes maintenance simple.
+// LEARNING GAP: Using named constants improves code readability and centralizes application rules.
+const NUMBER_OF_UPCOMING_PROJECTS = 5;
+
 // ============================================================================
-// MODEL IMPORTS
+// CONTROLLER HANDLERS
 // ============================================================================
 
-// PLAIN ENGLISH: Import the project-fetching recipe from our models directory.
-// LOGIC: Imports getAllProjects from ../models/projects.js using relative directory navigation.
-// WHY WE NEED IT: Controllers delegate database queries to models so SQL logic stays isolated from request coordination.
-// LEARNING GAP: Reinforces the MVC boundary: controllers must never construct or execute raw SQL queries directly.
-import { getAllProjects } from '../models/projects.js';
-
-// ============================================================================
-// CONTROLLER HANDLER FUNCTIONS
-// ============================================================================
-
-// PLAIN ENGLISH: The waiter function that retrieves project records and renders the projects catalog.
-// LOGIC: An asynchronous controller function that awaits asynchronous database model operations.
-// WHY WE NEED IT: Manages the request lifecycle for the '/projects' route endpoint.
-// LEARNING GAP: Using async/await prevents race conditions by ensuring database rows are fully fetched before compilation begins.
+// PLAIN ENGLISH: Gather the next 5 upcoming projects and display them on the main projects list page.
+// LOGIC: Asynchronous controller action that calls getUpcomingProjects(5) and renders projects.ejs.
+// WHY WE NEED IT: Serves GET /projects with only timely, actionable volunteer events.
+// LEARNING GAP: Filtering and limiting at the database layer is far more efficient than fetching all rows and filtering in JavaScript.
 const showProjectsPage = async (req, res) => {
-    // PLAIN ENGLISH: Ask the database model to fetch all available service projects and pause until it finishes.
-    // LOGIC: Awaits the promise returned by getAllProjects() and stores the resolved array in 'projects'.
-    // WHY WE NEED IT: Obtains the live dataset required to render dynamic project cards in the user interface.
-    // LEARNING GAP: Asynchronous data flow in Node.js requires explicit awaiting to prevent sending undefined variables to views.
-    const projects = await getAllProjects();
-
-    // PLAIN ENGLISH: Set the tab name for the user's browser window.
-    // LOGIC: Instantiates a string literal assigned to variable 'title'.
-    // WHY WE NEED IT: Informs the shared header partial of the correct page heading and tab label.
-    // LEARNING GAP: Demonstrates combining static metadata with dynamic database records into a single template payload.
-    const title = 'Service Projects';
-
-    // PLAIN ENGLISH: Send both the title and the database project rows into the projects.ejs view template.
-    // LOGIC: Invokes res.render() to compile src/views/projects.ejs with title and projects in the local scope.
-    // WHY WE NEED IT: Translates database rows into HTML table rows or cards for the client browser.
-    // LEARNING GAP: The View layer handles presentation looping (<% projects.forEach(...) %>), while the controller strictly supplies the data array.
+    const projects = await getUpcomingProjects(NUMBER_OF_UPCOMING_PROJECTS);
+    const title = 'Upcoming Service Projects';
     res.render('projects', { title, projects });
+};
+
+// PLAIN ENGLISH: Retrieve the details of one specific project and display its dedicated page.
+// LOGIC: Extracts :id from req.params, queries the model, and renders project.ejs.
+// WHY WE NEED IT: Serves GET /project/:id for granular project review.
+// LEARNING GAP: Capturing route parameters with req.params maps clean, readable URLs directly to database primary keys.
+const showProjectDetailsPage = async (req, res) => {
+    const projectId = req.params.id;
+    const project = await getProjectDetails(projectId);
+    const title = project ? project.title : 'Project Details';
+    res.render('project', { title, project });
 };
 
 // ============================================================================
 // MODULE EXPORTS
 // ============================================================================
 
-// PLAIN ENGLISH: Export this function so our router can map it to the '/projects' URL.
-// LOGIC: Uses ES Module syntax to export showProjectsPage as a named function.
-// WHY WE NEED IT: Allows src/routes.js to bind this logic to incoming HTTP GET requests.
-// LEARNING GAP: Isolates project feature logic into its own domain file rather than crowding general controller files.
-export { showProjectsPage };
+// PLAIN ENGLISH: Export controller handler functions so the router can bind them to URLs.
+// LOGIC: ES Module named exports.
+export { showProjectsPage, showProjectDetailsPage };
