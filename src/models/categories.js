@@ -1,41 +1,67 @@
-// ============================================================================
-// FILE: src/models/categories.js
-// WHAT THIS FILE DOES: 
-// This file acts as our "fetcher." Its only job is to talk directly to the 
-// database, ask for the list of categories, and bring them back to the app.
-// ============================================================================
+/*
+====================================================================
+FILE: src/models/categories.js
+PURPOSE:
+Data access layer responsible for all PostgreSQL interactions involving 
+categories and their many-to-many relationships with service projects.
+====================================================================
+*/
 
-// 1. BRING IN THE DATABASE CONNECTION
-// PLAIN ENGLISH: Grab our database query pool from db.js using modern ES Module import.
-// WHY WE NEED IT: Instead of opening a new database connection every time, we reuse the shared pool to stay fast.
 import db from './db.js';
 
-// 2. DEFINE THE FUNCTION TO GET ALL CATEGORIES
-// PLAIN ENGLISH: This is our recipe to fetch the category list. 
-// WHY "async": Getting data across the internet takes time. "async" tells our app, 
-// "Hey, pause here and wait for the database to reply—do not rush ahead with empty hands."
+/*
+PLAIN ENGLISH: Retrieve all categories in alphabetical order.
+LOGIC: Executes a basic SELECT query ordered by the category name column.
+WHY WE NEED IT: Populates the main /categories directory list.
+LEARNING GAP: Letting PostgreSQL sort with ORDER BY is faster and less memory-intensive than sorting arrays in JavaScript.
+*/
 async function getAllCategories() {
-
-    // 3. WRITE OUT OUR REQUEST IN DATABASE LANGUAGE (SQL)
-    // PLAIN ENGLISH: "Go to the categories table, get every item, and sort them A to Z."
-    // WHY WE DO IT THIS WAY: Databases are built to sort items instantly. Asking the database 
-    // to alphabetize them is much faster and cleaner than writing sorting code in JavaScript.
     const query = 'SELECT * FROM category ORDER BY name ASC;';
-
-    // 4. SEND THE REQUEST AND WAIT FOR THE ANSWER
-    // PLAIN ENGLISH: Run the SQL command through our database doorway and wait for the result.
-    // WHY "await": Without "await", JavaScript would jump to the next line immediately before 
-    // the database even had a chance to look up the records.
     const result = await db.query(query);
-
-    // 5. HAND OVER ONLY THE ACTUAL LIST OF DATA
-    // PLAIN ENGLISH: The database gives back metadata we don't need; "result.rows" holds the real records.
-    // WHY WE DO IT: Our web page only needs the list of category rows to display on screen.
     return result.rows;
 }
 
-// 6. SHARE THIS RECIPE WITH THE REST OF OUR APP
-// PLAIN ENGLISH: Put this function in the shared toolbox so server.js can use it.
-// WHY "export": This allows other files using modern JavaScript (ES Modules) to import and run this function.
-export { getAllCategories };
+/*
+PLAIN ENGLISH: Retrieve the details of one specific category using its ID.
+LOGIC: Uses a parameterized query (WHERE category_id = $1) to find the matching category record.
+WHY WE NEED IT: Provides the title and identity for the category details page (/category/:id).
+LEARNING GAP: Parameterized placeholders ($1) treat incoming values strictly as data, neutralizing SQL injection vulnerabilities.
+*/
+async function getCategoryById(id) {
+    const query = 'SELECT * FROM category WHERE category_id = $1;';
+    const result = await db.query(query, [id]);
+    return result.rows[0];
+}
 
+/*
+PLAIN ENGLISH: Retrieve all service projects associated with a given category.
+LOGIC: Executes an INNER JOIN connecting the 'project' table to the 'project_category' 
+junction table where category_id matches the requested ID, ordered by project date.
+WHY WE NEED IT: Allows users on a category details page to see every service opportunity filed under that category.
+LEARNING GAP: Many-to-many relationships require navigating through an associative junction table (project_category) to bridge entities.
+*/
+async function getProjectsByCategoryId(id) {
+    const query = `
+        SELECT 
+            p.project_id,
+            p.title,
+            p.description,
+            p.location,
+            p.project_date,
+            o.name AS organization_name,
+            o.organization_id
+        FROM project p
+        INNER JOIN project_category pc ON p.project_id = pc.project_id
+        INNER JOIN organization o ON p.organization_id = o.organization_id
+        WHERE pc.category_id = $1
+        ORDER BY p.project_date ASC;
+    `;
+    const result = await db.query(query, [id]);
+    return result.rows;
+}
+
+export {
+    getAllCategories,
+    getCategoryById,
+    getProjectsByCategoryId
+};

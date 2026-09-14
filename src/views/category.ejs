@@ -1,0 +1,57 @@
+<%- include('partials/header') %>
+
+<%
+/*
+====================================================================
+FILE: src/views/category.ejs
+PURPOSE:
+Display view for an individual category, showing its name and all 
+associated service projects.
+
+PLAIN ENGLISH:
+This page displays the name of the chosen category as the main header.
+Beneath it, it lists all volunteer service projects tagged under this 
+genre, with clickable links to the project details and the host group.
+
+LOGIC:
+Reads the 'category' object for the header. Evaluates if the 'projects' 
+array has items: if true, iterates using forEach to output list items; 
+otherwise, falls back to a friendly 'no projects found' message.
+
+WHY WE NEED IT:
+Serves as the dedicated landing page when users click any category link 
+or category tag across the site (/category/:id).
+
+LEARNING GAP:
+Checking array length with an if/else block prevents rendering empty, 
+unstyled <ul> tags that fail accessibility guidelines.
+====================================================================
+*/
+%>
+
+<main>
+    <h1><%= category.name %></h1>
+
+    <p>Service projects under this category:</p>
+
+    <% if (projects && projects.length > 0) { %>
+        <ul>
+            <% projects.forEach(project => { %>
+                <li>
+                    <a href="/project/<%= project.project_id %>">
+                        <strong><%= project.title %></strong>
+                    </a>
+                    — Organized by: 
+                    <a href="/organization/<%= project.organization_id %>">
+                        <%= project.organization_name %>
+                    </a>
+                    (<%= new Date(project.project_date).toLocaleDateString() %>)
+                </li>
+            <% }); %>
+        </ul>
+    <% } else { %>
+        <p>No service projects currently found for this category.</p>
+    <% } %>
+</main>
+
+<%- include('partials/footer') %>

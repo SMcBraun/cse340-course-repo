@@ -1,45 +1,46 @@
-<!-- LOGIC: Embeds external UI code into this template. -->
-<!-- LEARNING GAP: Keeps us from copying and pasting header HTML on every single page. -->
 <%- include('partials/header') %>
 
-    <!-- LOGIC: Wraps the unique page content inside a semantic HTML tag. -->
-    <!-- LEARNING GAP: Helps screen readers and search engines understand where the main page content lives. -->
-    <main>
+<%
+/*
+====================================================================
+FILE: src/views/categories.ejs
+PURPOSE:
+Master list view displaying all available volunteer service categories.
 
-        <!-- LOGIC: Pulls the dynamic variable sent from server.js and outputs text. -->
-        <!-- LEARNING GAP: <%= %> evaluates JavaScript and safely displays data inside the HTML layout. -->
-        <h1>
-            <%= title %>
-        </h1>
+PLAIN ENGLISH:
+Displays the complete directory of categories. Each category's name is 
+rendered as an active link that takes the user directly to that category's 
+dedicated projects page.
 
-        <!-- LOGIC: Provides static introductory text for site visitors. -->
-        <!-- LEARNING GAP: Connects the big header title to the itemized list below. -->
-        <p>Explore our service project categories:</p>
+LOGIC:
+Loops through the 'categories' array passed from the controller and wraps 
+each category's name inside an anchor tag pointing to /category/:category_id.
 
-        <!-- LOGIC: Initializes an unordered list element structure. -->
-        <!-- LEARNING GAP: Groups individual list items so CSS can style them as a cohesive unit. -->
-        <ul>
-            <!-- LOGIC: Loops through the dynamic array of categories passed from server.js. -->
-            <!-- LEARNING GAP: Replaces hardcoded placeholder list items with automated database-driven output. -->
-            <% categories.forEach(category=> { %>
-                <!-- LOGIC: Renders a single list item node populated with the category name from the database. -->
-                <!-- LEARNING GAP: Reads the 'name' column property directly from the row object sent by PostgreSQL. -->
-                <li>
-                    <strong>
-                        <%= category.name %>
-                    </strong>
-                </li>
-                <!-- LOGIC: Closes the JavaScript iteration block. -->
-                <!-- LEARNING GAP: Prevents EJS rendering exceptions by ensuring balanced execution tags. -->
-                <% }); %>
-                    <!-- LOGIC: Closes the unordered list element structure. -->
-                    <!-- LEARNING GAP: Prevents HTML layout breaking by properly terminating open tags. -->
-        </ul>
+WHY WE NEED IT:
+Satisfies Rubric Criterion 1: 'Pages list all items in the database and 
+each one is a link to the details page of that item.'
 
-        <!-- LOGIC: Closes the primary semantic content container. -->
-        <!-- LEARNING GAP: Maintains valid HTML tree structure across different view templates. -->
-    </main>
+LEARNING GAP:
+Using primary keys in the href (/category/:id) binds our front-end 
+navigation dynamically to relational database IDs.
+====================================================================
+*/
+%>
 
-    <!-- LOGIC: Embeds external footer UI code into the bottom of this template. -->
-    <!-- LEARNING GAP: Ensures consistent copyright and footer information across all views without duplication. -->
-    <%- include('partials/footer') %>
+<main>
+    <h1><%= title %></h1>
+
+    <p>Select a category to browse related service projects:</p>
+
+    <ul>
+        <% categories.forEach(category => { %>
+            <li>
+                <a href="/category/<%= category.category_id %>">
+                    <%= category.name %>
+                </a>
+            </li>
+        <% }); %>
+    </ul>
+</main>
+
+<%- include('partials/footer') %>

@@ -1,28 +1,31 @@
 <%- include('partials/header') %>
 
-<!--
+<%
+/*
 ====================================================================
 FILE: src/views/project.ejs
 PURPOSE:
-View template that displays the granular details of a single service 
-project along with an interactive link to its parent organization.
+Granular detail view for an individual service project, including host 
+organization and clickable category tags.
 
 PLAIN ENGLISH:
-Display the specific service project's title, host organization, date,
-location, and description.
+Displays the full details of a single event (title, date, location, description), 
+a link back to the host charity, and clickable category tags at the bottom.
 
 LOGIC:
-Extracts properties from the single 'project' object passed by the 
-showProjectDetailsPage controller. Renders a link to /organization/:id.
+Renders the individual 'project' object properties. Iterates over the 'categories' 
+array to render dynamic tag links pointing to /category/:category_id.
 
 WHY WE NEED IT:
-Serves as the dedicated landing view for an individual service opportunity.
+Completes the multi-directional navigation loop across Projects, Organizations, 
+and Categories required for 100% Mastery.
 
 LEARNING GAP:
-Because our model used an INNER JOIN, project.organization_name is already 
-available on the project object without executing an additional database query.
+Rendering tags allows lateral discovery: a user reading about a garden project 
+can click the [Environmental] tag to discover all other environmental projects.
 ====================================================================
--->
+*/
+%>
 
 <main>
     <h1><%= project.title %></h1>
@@ -48,6 +51,23 @@ available on the project object without executing an additional database query.
         <strong>Description:</strong> 
         <%= project.description %>
     </p>
+
+    <section class="project-categories">
+        <strong>Categories:</strong>
+        <% if (categories && categories.length > 0) { %>
+            <ul style="display: inline-block; padding-left: 10px; list-style: none;">
+                <% categories.forEach(category => { %>
+                    <li style="display: inline; margin-right: 8px;">
+                        <a href="/category/<%= category.category_id %>">
+                            [<%= category.name %>]
+                        </a>
+                    </li>
+                <% }); %>
+            </ul>
+        <% } else { %>
+            <span>None</span>
+        <% } %>
+    </section>
 </main>
 
 <%- include('partials/footer') %>

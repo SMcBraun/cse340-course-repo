@@ -119,15 +119,37 @@ const getProjectDetails = async (id) => {
   return result.rows.length > 0 ? result.rows[0] : null;
 };
 
+/*
+PLAIN ENGLISH: Retrieve all categories tagged to a single service project.
+LOGIC: Uses an INNER JOIN bridging 'category' and 'project_category' where project_id matches the input parameter.
+WHY WE NEED IT: Supplies category tag labels to the individual project details view (/project/:id).
+LEARNING GAP: Without joining through project_category, the project record has no direct foreign key to categories because of the many-to-many schema design.
+*/
+async function getCategoriesByProjectId(projectId) {
+  const query = `
+        SELECT 
+            c.category_id,
+            c.name
+        FROM category c
+        INNER JOIN project_category pc ON c.category_id = pc.category_id
+        WHERE pc.project_id = $1
+        ORDER BY c.name ASC;
+    `;
+  const result = await db.query(query, [projectId]);
+  return result.rows;
+}
+
+
+
 // ============================================================================
 // MODULE EXPORTS
 // ============================================================================
-
 // PLAIN ENGLISH: Export model query functions for use across the controller layer.
 // LOGIC: Exports query functions via named ES Module syntax.
 export {
   getAllProjects,
   getProjectsByOrganizationId,
   getUpcomingProjects,
-  getProjectDetails
+  getProjectDetails,
+  getCategoriesByProjectId
 };
