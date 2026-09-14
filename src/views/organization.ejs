@@ -1,0 +1,28 @@
+<%- include('partials/header') %>
+    <main>
+        <h1>
+            <%= title %>
+        </h1>
+
+        <!-- Organization Name and Logo -->
+        <h2>
+            <%= organizationDetails.name %>
+        </h2>
+        <img src="/images/<%= organizationDetails.logo_filename %>" alt="<%= organizationDetails.name %> logo">
+
+        <!-- Description -->
+        <p>Description: <%= organizationDetails.description %>
+        </p>
+
+        <!-- Associated Projects List -->
+        <h3>Service Projects</h3>
+        <ul>
+            <% projects.forEach(project=> { %>
+                <!-- Note: Project detail links will become active during the team activity -->
+                <li><a href="/project/<%= project.project_id %>">
+                        <%= project.title %>
+                    </a></li>
+                <% }) %>
+        </ul>
+    </main>
+    <%- include('partials/footer') %>
