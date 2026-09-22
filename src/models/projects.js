@@ -7,20 +7,12 @@ Data model for Service Projects. Handles SQL interactions with the
 ====================================================================
 */
 
-// PLAIN ENGLISH: Connect to our PostgreSQL database so we can run queries.
-// LOGIC: Imports the db connection pool helper from ./db.js.
-// WHY WE NEED IT: Allows model functions to run parameterized SQL against PostgreSQL tables.
-// LEARNING GAP: Centralized connection pooling handles database resources efficiently without leaking connections.
 import db from './db.js';
 
 // ============================================================================
 // ALL PROJECTS QUERY
 // ============================================================================
 
-// PLAIN ENGLISH: Retrieve all projects from the database.
-// LOGIC: Queries the project table and orders the records by project_date.
-// WHY WE NEED IT: Retains baseline capability to view the entire catalog of projects.
-// LEARNING GAP: Keeps legacy model logic available for reporting or admin listing needs.
 const getAllProjects = async () => {
   const query = `
       SELECT
@@ -41,10 +33,6 @@ const getAllProjects = async () => {
 // PROJECTS BY ORGANIZATION QUERY
 // ============================================================================
 
-// PLAIN ENGLISH: Retrieve only the service projects that belong to a specific organization.
-// LOGIC: Filters project records matching the foreign key organization_id parameter.
-// WHY WE NEED IT: Powers the organization details page so visitors see projects affiliated with that group.
-// LEARNING GAP: Parameterized placeholders ($1) prevent SQL injection vulnerabilities from dynamic route inputs.
 const getProjectsByOrganizationId = async (organizationId) => {
   const query = `
       SELECT
@@ -67,10 +55,6 @@ const getProjectsByOrganizationId = async (organizationId) => {
 // UPCOMING PROJECTS QUERY (WITH TABLE JOIN)
 // ============================================================================
 
-// PLAIN ENGLISH: Find the next few upcoming service projects whose dates have not yet passed, plus the name of the group running each project.
-// LOGIC: Executes an INNER JOIN between 'project' and 'organization' on organization_id, filtering for project_date >= CURRENT_DATE, sorted ascending, and limited by $1.
-// WHY WE NEED IT: Powers the main projects page so users see immediate upcoming volunteer opportunities rather than past dates.
-// LEARNING GAP: An INNER JOIN connects two relational tables using a foreign key relationship to fetch data across both entities in a single database round-trip.
 const getUpcomingProjects = async (number_of_projects) => {
   const query = `
       SELECT
@@ -96,10 +80,6 @@ const getUpcomingProjects = async (number_of_projects) => {
 // SINGLE PROJECT DETAILS QUERY (WITH TABLE JOIN)
 // ============================================================================
 
-// PLAIN ENGLISH: Fetch the full details of a single service project, along with its host organization's name.
-// LOGIC: Queries 'project' joined with 'organization' matching p.project_id with parameter $1.
-// WHY WE NEED IT: Powers the service project details view (/project/:id).
-// LEARNING GAP: Returning a single row object (or null) prevents views from having to handle array indexing.
 const getProjectDetails = async (id) => {
   const query = `
       SELECT
@@ -119,12 +99,10 @@ const getProjectDetails = async (id) => {
   return result.rows.length > 0 ? result.rows[0] : null;
 };
 
-/*
-PLAIN ENGLISH: Retrieve all categories tagged to a single service project.
-LOGIC: Uses an INNER JOIN bridging 'category' and 'project_category' where project_id matches the input parameter.
-WHY WE NEED IT: Supplies category tag labels to the individual project details view (/project/:id).
-LEARNING GAP: Without joining through project_category, the project record has no direct foreign key to categories because of the many-to-many schema design.
-*/
+// PLAIN ENGLISH: Retrieve all categories tagged to a single service project.
+// LOGIC: Uses an INNER JOIN bridging category and project_category where project_id matches the input parameter.
+// WHY WE NEED IT: Supplies category tag labels to the individual project details view (/project/:id).
+// LEARNING GAP: Without joining through project_category, the project record has no direct foreign key to categories because of the many-to-many schema design.
 async function getCategoriesByProjectId(projectId) {
   const query = `
         SELECT 
@@ -139,17 +117,40 @@ async function getCategoriesByProjectId(projectId) {
   return result.rows;
 }
 
+// ============================================================================
+// CREATE PROJECT MODEL QUERY
+// ============================================================================
 
+// PLAIN ENGLISH: Save a brand new service project record into the database, linked to its host organization.
+// LOGIC: An asynchronous INSERT query that adds a new row into the project table using the provided values, returning the new record's auto-generated ID.
+// WHY WE NEED IT: Powers the "new service project" form so submitted data actually gets stored, associated with the correct organization.
+// LEARNING GAP: The organizationId parameter is a foreign key -- it links this new row back to an existing row in the organization table, which is how the two tables stay connected.
+const createProject = async (title, description, location, date, organizationId) => {
+  const query = `
+      INSERT INTO project (title, description, location, project_date, organization_id)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING project_id;
+    `;
+
+  const queryParams = [title, description, location, date, organizationId];
+  const result = await db.query(query, queryParams);
+
+  if (result.rows.length === 0) {
+    throw new Error('Failed to create project');
+  }
+
+  return result.rows[0].project_id;
+};
 
 // ============================================================================
 // MODULE EXPORTS
 // ============================================================================
-// PLAIN ENGLISH: Export model query functions for use across the controller layer.
-// LOGIC: Exports query functions via named ES Module syntax.
+
 export {
   getAllProjects,
   getProjectsByOrganizationId,
   getUpcomingProjects,
   getProjectDetails,
-  getCategoriesByProjectId
+  getCategoriesByProjectId,
+  createProject
 };
