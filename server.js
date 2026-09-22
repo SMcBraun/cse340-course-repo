@@ -30,6 +30,9 @@ import { testConnection } from './src/models/db.js';
 // LEARNING GAP: Switches from legacy CommonJS (require) to modern ES Modules (import), aligning with current JavaScript standards.
 import express from 'express';
 
+import session from 'express-session';
+import flash from './src/middleware/flash.js';
+
 // PLAIN ENGLISH: Tool to convert file URLs into standard file path strings.
 // LOGIC: Imports fileURLToPath from the native Node.js 'url' module.
 // WHY WE NEED IT: In modern ES Modules, __dirname and __filename are not provided by default, so we construct them manually.
@@ -63,6 +66,9 @@ const NODE_ENV = process.env.NODE_ENV?.toLowerCase() || 'production';
 // WHY WE NEED IT: Cloud providers like Render assign dynamic ports randomly; hardcoding a port causes deployment crashes.
 // LEARNING GAP: Prevents cloud deployment crashes by using environment-driven configuration instead of hardcoded numbers.
 const PORT = process.env.PORT || 3000;
+const SESSION_SECRET = process.env.SESSION_SECRET;
+
+
 
 // PLAIN ENGLISH: Determine the exact file name and directory path where this server file lives on the computer.
 // LOGIC: Converts import.meta.url to a file path and retrieves its containing directory.
@@ -80,6 +86,8 @@ const __dirname = path.dirname(__filename);
 // WHY WE NEED IT: 'app' is the central engine that holds all our middleware, template engine settings, and routes.
 // LEARNING GAP: Differentiates between importing the abstract Express library and instantiating an active, runnable server app.
 const app = express();
+app.use(express.urlencoded({ extended: true }));
+app.use(express.json());
 
 // PLAIN ENGLISH: Make the public folder (CSS, images, front-end files) available to anyone visiting the site.
 // LOGIC: Mounts static file middleware pointing to the absolute path of the public directory.
@@ -102,6 +110,19 @@ app.set('views', path.join(__dirname, 'src/views'));
 // ============================================================================
 // GLOBAL MIDDLEWARE PIPELINE
 // ============================================================================
+
+// Set up session management
+app.use(session({
+    secret: SESSION_SECRET,
+    resave: false,
+    saveUninitialized: true,
+    cookie: { maxAge: 60 * 60 * 1000 } // Session expires after 1 hour of inactivity
+}));
+
+// Use flash message middleware
+app.use(flash);
+
+
 
 // PLAIN ENGLISH: Checkpoint that prints every page request to our terminal when working locally.
 // LOGIC: Inspects req.method and req.url, logging them to console only if NODE_ENV is development.
@@ -192,3 +213,4 @@ const server = app.listen(PORT, async () => {
         console.error('Error connecting to the database:', error);
     }
 });
+

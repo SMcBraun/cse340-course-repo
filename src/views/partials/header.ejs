@@ -63,3 +63,12 @@
         <!-- LOGIC: Closes the navigation container. -->
         <!-- LEARNING GAP: Maintains clean modular code separation before view templates insert main body content. -->
     </nav>
+
+<% const messages = flash(); %>
+<% Object.keys(messages).forEach(type => { %>
+    <% if (messages[type].length > 0) { %>
+        <% messages[type].forEach(msg => { %>
+            <div class="alert <%= type %>"><%= msg %></div>
+        <% }); %>
+    <% } %>
+<% }); %>

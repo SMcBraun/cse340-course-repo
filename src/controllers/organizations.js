@@ -22,6 +22,7 @@ import { getAllOrganizations, getOrganizationDetails } from '../models/organizat
 // WHY WE NEED IT: Needed so the detail view can display both the organization info and its associated service projects.
 // LEARNING GAP: Demonstrates that a single controller can coordinate multiple models to fulfill one view requirement.
 import { getProjectsByOrganizationId } from '../models/projects.js';
+import { createOrganization } from '../models/organizations.js';
 
 // ============================================================================
 // CONTROLLER HANDLER FUNCTIONS
@@ -67,4 +68,20 @@ const showOrganizationDetailsPage = async (req, res) => {
 
 // PLAIN ENGLISH: Export both controller actions so routes.js can connect them to URLs.
 // LOGIC: Named exports of both controller functions.
-export { showOrganizationsPage, showOrganizationDetailsPage };
+const showNewOrganizationForm = async (req, res) => {
+    const title = 'Add New Organization';
+    res.render('new-organization', { title });
+};
+
+const processNewOrganizationForm = async (req, res) => {
+    const { name, description, contactEmail } = req.body;
+    const logoFilename = 'placeholder-logo.png';
+
+    const organizationId = await createOrganization(name, description, contactEmail, logoFilename);
+
+    req.flash('success', 'Organization added successfully!');
+
+    res.redirect(`/organization/${organizationId}`);
+};
+
+export { showOrganizationsPage, showOrganizationDetailsPage, showNewOrganizationForm, processNewOrganizationForm };

@@ -22,7 +22,7 @@ import db from './db.js';
 // WHY WE NEED IT: Supplies data to our /organizations route so visitors can see the full list of partner charities.
 // LEARNING GAP: Models handle data fetching and SQL construction exclusively; they never interact with HTTP request or response objects.
 const getAllOrganizations = async () => {
-    const query = `
+  const query = `
       SELECT
         organization_id,
         name,
@@ -32,8 +32,8 @@ const getAllOrganizations = async () => {
       FROM organization
       ORDER BY name;
     `;
-    const result = await db.query(query);
-    return result.rows;
+  const result = await db.query(query);
+  return result.rows;
 };
 
 // ============================================================================
@@ -45,7 +45,7 @@ const getAllOrganizations = async () => {
 // WHY WE NEED IT: Powers the organization details page so users can learn more about a single partner group.
 // LEARNING GAP: Parameterized queries ($1) prevent SQL Injection attacks by ensuring user inputs are treated strictly as data, never executable SQL commands.
 const getOrganizationDetails = async (organizationId) => {
-    const query = `
+  const query = `
       SELECT
         organization_id,
         name,
@@ -56,11 +56,11 @@ const getOrganizationDetails = async (organizationId) => {
       WHERE organization_id = $1;
     `;
 
-    const queryParams = [organizationId];
-    const result = await db.query(query, queryParams);
+  const queryParams = [organizationId];
+  const result = await db.query(query, queryParams);
 
-    // Return the first row found, or null if no match exists
-    return result.rows.length > 0 ? result.rows[0] : null;
+  // Return the first row found, or null if no match exists
+  return result.rows.length > 0 ? result.rows[0] : null;
 };
 
 // ============================================================================
@@ -71,4 +71,18 @@ const getOrganizationDetails = async (organizationId) => {
 // LOGIC: Uses ES Module named export syntax to make getAllOrganizations and getOrganizationDetails accessible.
 // WHY WE NEED IT: Allows our controllers (src/controllers/organizations.js) to import and call these functions.
 // LEARNING GAP: Named exports allow us to bundle multiple focused query functions in a single model file.
-export { getAllOrganizations, getOrganizationDetails };
+
+const createOrganization = async (name, description, contactEmail, logoFilename) => {
+  const query = `
+      INSERT INTO organization (name, description, contact_email, logo_filename)
+      VALUES ($1, $2, $3, $4)
+      RETURNING organization_id
+    `;
+
+  const queryParams = [name, description, contactEmail, logoFilename];
+  const result = await db.query(query, queryParams);
+
+  return result.rows[0].organization_id;
+};
+
+export { getAllOrganizations, getOrganizationDetails, createOrganization };
