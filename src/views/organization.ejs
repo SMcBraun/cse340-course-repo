@@ -14,6 +14,11 @@
         <p>Description: <%= organizationDetails.description %>
         </p>
 
+        <!-- LOGIC: Builds a dynamic link to /edit-organization/{id}, inserting this specific organization's ID number. -->
+        <!-- WHY WE NEED IT: Lets the user navigate to a pre-filled edit form for this exact organization record. -->
+        <!-- LEARNING GAP: Reuses the same dynamic-URL pattern as /category/:id and /project/:id — one pattern, many uses. -->
+        <p><a href="/edit-organization/<%= organizationDetails.organization_id %>">Edit Organization</a></p>
+
         <!-- Associated Projects List -->
         <h3>Service Projects</h3>
         <ul>

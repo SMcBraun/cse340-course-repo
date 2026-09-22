@@ -7,10 +7,6 @@ direct communication with the PostgreSQL database table for organizations.
 ====================================================================
 */
 
-// PLAIN ENGLISH: Import our custom database connection pool so we can execute queries against PostgreSQL.
-// LOGIC: Imports the db object holding our pg Pool query method from ./db.js.
-// WHY WE NEED IT: Node.js cannot talk to PostgreSQL on its own; it requires this pooled connection client to send SQL statements.
-// LEARNING GAP: Centralizing database execution logic in db.js prevents opening dozens of unmanaged connections across multiple model files.
 import db from './db.js';
 
 // ============================================================================
@@ -59,19 +55,17 @@ const getOrganizationDetails = async (organizationId) => {
   const queryParams = [organizationId];
   const result = await db.query(query, queryParams);
 
-  // Return the first row found, or null if no match exists
   return result.rows.length > 0 ? result.rows[0] : null;
 };
 
 // ============================================================================
-// MODULE EXPORTS
+// CREATE ORGANIZATION MODEL QUERY
 // ============================================================================
 
-// PLAIN ENGLISH: Export both database query tools so controllers can use them.
-// LOGIC: Uses ES Module named export syntax to make getAllOrganizations and getOrganizationDetails accessible.
-// WHY WE NEED IT: Allows our controllers (src/controllers/organizations.js) to import and call these functions.
-// LEARNING GAP: Named exports allow us to bundle multiple focused query functions in a single model file.
-
+// PLAIN ENGLISH: Save a brand new organization record into the database.
+// LOGIC: An asynchronous INSERT query that adds a new row and returns the new record's auto-generated ID.
+// WHY WE NEED IT: Powers the "new organization" form so submitted data actually gets stored.
+// LEARNING GAP: The RETURNING clause hands back the new primary key immediately, without needing a second lookup query.
 const createOrganization = async (name, description, contactEmail, logoFilename) => {
   const query = `
       INSERT INTO organization (name, description, contact_email, logo_filename)
@@ -85,4 +79,38 @@ const createOrganization = async (name, description, contactEmail, logoFilename)
   return result.rows[0].organization_id;
 };
 
-export { getAllOrganizations, getOrganizationDetails, createOrganization };
+// ============================================================================
+// UPDATE ORGANIZATION MODEL QUERY
+// ============================================================================
+
+// PLAIN ENGLISH: Overwrite an existing organization's details with new, edited values.
+// LOGIC: An asynchronous UPDATE query that modifies the row matching the given organization_id, setting each column to its new value.
+// WHY WE NEED IT: Powers the "edit organization" form so changes made by the user are saved back to the database.
+// LEARNING GAP: UPDATE targets an existing row using WHERE, unlike INSERT which always creates a brand new one.
+const updateOrganization = async (organizationId, name, description, contactEmail, logoFilename) => {
+  const query = `
+      UPDATE organization
+      SET name = $1, description = $2, contact_email = $3, logo_filename = $4
+      WHERE organization_id = $5
+      RETURNING organization_id;
+    `;
+
+  const queryParams = [name, description, contactEmail, logoFilename, organizationId];
+  const result = await db.query(query, queryParams);
+
+  if (result.rows.length === 0) {
+    throw new Error('Organization not found');
+  }
+
+  return result.rows[0].organization_id;
+};
+
+// ============================================================================
+// MODULE EXPORTS
+// ============================================================================
+
+// PLAIN ENGLISH: Export all database query tools so controllers can use them.
+// LOGIC: Uses ES Module named export syntax to make each model function accessible.
+// WHY WE NEED IT: Allows our controllers (src/controllers/organizations.js) to import and call these functions.
+// LEARNING GAP: Named exports allow us to bundle multiple focused query functions in a single model file.
+export { getAllOrganizations, getOrganizationDetails, createOrganization, updateOrganization };
