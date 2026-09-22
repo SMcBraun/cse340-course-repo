@@ -15,18 +15,20 @@ const getCategoryById = async (id) => {
     return result.rows[0];
 };
 
-// Retrieve all service projects associated with a given category ID
 const getProjectsByCategoryId = async (categoryId) => {
     const sql = `
-    SELECT p.project_id, p.title, p.description
+    SELECT p.project_id, p.title, p.description, p.project_date,
+           o.organization_id, o.name AS organization_name
     FROM public.project p
     JOIN public.project_category pc ON p.project_id = pc.project_id
+    JOIN public.organization o ON p.organization_id = o.organization_id
     WHERE pc.category_id = $1
     ORDER BY p.title ASC;
   `;
     const result = await db.query(sql, [categoryId]);
     return result.rows;
 };
+
 
 // Retrieve all category tags for a given service project
 const getCategoriesByProjectId = async (projectId) => {
@@ -48,3 +50,4 @@ export default {
     getProjectsByCategoryId,
     getCategoriesByProjectId
 };
+

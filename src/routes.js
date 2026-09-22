@@ -10,7 +10,7 @@ import express from 'express';
 import { showHomePage } from './controllers/index.js';
 import { showOrganizationsPage, showOrganizationDetailsPage } from './controllers/organizations.js';
 import { showProjectsPage, showProjectDetailsPage } from './controllers/projects.js';
-import { showCategoriesPage, showCategoryDetailsPage } from './controllers/categories.js';
+import categoriesController from './controllers/categories.js';
 import { testErrorPage } from './controllers/errors.js';
 
 const router = express.Router();
@@ -31,12 +31,13 @@ router.get('/projects', showProjectsPage);
 router.get('/project/:id', showProjectDetailsPage);
 
 // Category routes
-router.get('/categories', showCategoriesPage);
+router.get('/categories', categoriesController.showCategories);
+
 // PLAIN ENGLISH: Match any URL like /category/1 and display all projects tagged with that category.
 // LOGIC: Registers a dynamic GET route capturing the category primary key as :id.
 // WHY WE NEED IT: Allows users to click on category links or tags and see filtered project lists.
 // LEARNING GAP: Parameterized routing reuses a single controller function to serve distinct category views dynamically.
-router.get('/category/:id', showCategoryDetailsPage);
+router.get('/category/:id', categoriesController.showCategoryDetails);
 
 // Diagnostic test route
 router.get('/test-error', testErrorPage);
