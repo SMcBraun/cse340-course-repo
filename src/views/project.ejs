@@ -68,6 +68,12 @@ can click the [Environmental] tag to discover all other environmental projects.
             <span>None</span>
         <% } %>
     </section>
+
+    <!-- PLAIN ENGLISH: A link that opens the checkbox form for changing which categories tag this project. -->
+    <!-- LOGIC: A plain anchor tag pointing at /assign-categories/{id}, using this project's own ID. -->
+    <!-- WHY WE NEED IT: Gives users a way to reach the category-assignment form directly from a project's details page. -->
+    <!-- LEARNING GAP: Same dynamic-ID link pattern used throughout the site (organizations, categories) -- reused again here. -->
+    <p><a href="/assign-categories/<%= project.project_id %>">Edit Categories</a></p>
 </main>
 
 <%- include('partials/footer') %>

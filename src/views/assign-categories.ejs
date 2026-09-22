@@ -1,0 +1,30 @@
+<%- include('partials/header') %>
+<main>
+    <h1><%= projectDetails.title %></h1>
+
+    <h2>Assign Categories</h2>
+
+    <!-- PLAIN ENGLISH: One checkbox per category, sharing the same name so all checked boxes submit together as one array. -->
+    <!-- LOGIC: Loops through every category; a box starts checked if assignedCategories already contains that category's ID. -->
+    <!-- WHY WE NEED IT: Lets the user see current tags at a glance and freely add or remove any combination. -->
+    <!-- LEARNING GAP: .some() returns true the moment it finds one matching item, so it stops checking as soon as a match is found -- more efficient than scanning the whole list every time. -->
+    <form action="/assign-categories/<%= projectId %>" method="POST">
+        <div class="form-group">
+            <% categories.forEach(category => { %>
+                <div>
+                    <input
+                        type="checkbox"
+                        id="category-<%= category.category_id %>"
+                        name="categoryIds"
+                        value="<%= category.category_id %>"
+                        <%= assignedCategories.some(ac => ac.category_id === category.category_id) ? 'checked' : '' %>
+                    />
+                    <label for="category-<%= category.category_id %>"><%= category.name %></label>
+                </div>
+            <% }); %>
+        </div>
+
+        <button type="submit">Update Categories</button>
+    </form>
+</main>
+<%- include('partials/footer') %>

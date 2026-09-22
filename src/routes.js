@@ -28,24 +28,25 @@ router.post('/edit-organization/:id', organizationValidation, processEditOrganiz
 
 // Service Project routes
 router.get('/projects', showProjectsPage);
-
-// PLAIN ENGLISH: Match /new-project and show a blank form, with a dropdown listing every organization.
-// LOGIC: Registers a GET route that calls showNewProjectForm.
-// WHY WE NEED IT: Lets users start creating a brand new service project record.
-// LEARNING GAP: This route must be registered before /project/:id, or Express could mistake "new-project" for an ID value.
 router.get('/new-project', showNewProjectForm);
-
-// PLAIN ENGLISH: Match the form submission from the new project page, validate it, then save it.
-// LOGIC: Registers a POST route running projectValidation first, then processNewProjectForm.
-// WHY WE NEED IT: Applies the same validate-then-process pattern already used for organizations.
-// LEARNING GAP: Reusing this pattern across different resources (organizations, projects) shows how the same architecture scales to new features.
 router.post('/new-project', projectValidation, processNewProjectForm);
-
 router.get('/project/:id', showProjectDetailsPage);
 
 // Category routes
 router.get('/categories', categoriesController.showCategories);
 router.get('/category/:id', categoriesController.showCategoryDetails);
+
+// PLAIN ENGLISH: Match /assign-categories/5 and show a checkbox form for tagging project 5 with categories.
+// LOGIC: Registers a GET route capturing the project's ID as :projectId.
+// WHY WE NEED IT: Lets users open the category-assignment checklist for one specific project.
+// LEARNING GAP: The parameter name here is :projectId instead of :id, since this route lives outside the /project path and needs to be explicit about which ID it expects.
+router.get('/assign-categories/:projectId', categoriesController.showAssignCategoriesForm);
+
+// PLAIN ENGLISH: Match the checkbox form submission and save the new full set of category tags for that project.
+// LOGIC: Registers a POST route that calls processAssignCategoriesForm.
+// WHY WE NEED IT: Completes the assign-categories workflow by writing the user's checkbox choices to the database.
+// LEARNING GAP: No validation middleware runs here -- checkbox selections do not need text-length or format validation the way typed form fields do.
+router.post('/assign-categories/:projectId', categoriesController.processAssignCategoriesForm);
 
 // Diagnostic test route
 router.get('/test-error', testErrorPage);

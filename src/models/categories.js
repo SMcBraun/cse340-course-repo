@@ -43,11 +43,39 @@ const getCategoriesByProjectId = async (projectId) => {
     return result.rows;
 };
 
+// PLAIN ENGLISH: Insert one new link between a single project and a single category into the junction table.
+// LOGIC: An asynchronous INSERT query adding one row to project_category with the given project and category IDs.
+// WHY WE NEED IT: A many-to-many relationship (one project, many categories; one category, many projects) needs a linking table -- this function adds one link at a time.
+// LEARNING GAP: This function is a small building block, only ever called from inside updateCategoryAssignments below, never directly from a controller.
+const assignCategoryToProject = async (categoryId, projectId) => {
+    const sql = `
+    INSERT INTO project_category (category_id, project_id)
+    VALUES ($1, $2);
+  `;
+    await db.query(sql, [categoryId, projectId]);
+};
+
+// PLAIN ENGLISH: Replace a project's entire set of category tags with a brand new set in one operation.
+// LOGIC: First deletes every existing project_category row for this project, then loops through the new categoryIds array, calling assignCategoryToProject once per category.
+// WHY WE NEED IT: Powers the "assign categories" checkbox form -- rebuilding the full set from scratch is simpler and safer than calculating exactly which boxes changed.
+// LEARNING GAP: A delete-then-reinsert pattern avoids tricky logic for figuring out which links to add versus remove individually.
+const updateCategoryAssignments = async (projectId, categoryIds) => {
+    const deleteSql = `
+    DELETE FROM project_category
+    WHERE project_id = $1;
+  `;
+    await db.query(deleteSql, [projectId]);
+
+    for (const categoryId of categoryIds) {
+        await assignCategoryToProject(categoryId, projectId);
+    }
+};
+
 // Export all model functions using arrow notation
 export default {
     getCategories,
     getCategoryById,
     getProjectsByCategoryId,
-    getCategoriesByProjectId
+    getCategoriesByProjectId,
+    updateCategoryAssignments
 };
-
