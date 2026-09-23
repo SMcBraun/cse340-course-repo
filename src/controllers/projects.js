@@ -103,7 +103,7 @@ const showProjectDetailsPage = async (req, res, next) => {
     }
 };
 
-// PLAIN ENGLISH: The waiter function that displays the blank new project form, including the organization dropdown.
+// PLAIN ENGLISH: The server shows the blank new project form, including the organization dropdown.
 // LOGIC: Fetches every organization from the database, then renders new-project.ejs passing that list along.
 // WHY WE NEED IT: The dropdown menu cannot exist without a full list of organizations to populate its options.
 // LEARNING GAP: The controller gathers everything a view needs into one data object before calling res.render().
@@ -117,8 +117,8 @@ const showNewProjectForm = async (req, res, next) => {
     }
 };
 
-// PLAIN ENGLISH: The waiter function that receives the new project form data, validates it, and saves it.
-// LOGIC: Checks validationResult() first; on failure, flashes each error and redirects back to the form.On success, calls createProject and redirects to the new project's details page.
+// PLAIN ENGLISH: The server receives the new project form data, checks it, and saves it.
+// LOGIC: Checks validationResult() first; on failure, flashes each error and redirects back to the form. On success, calls createProject and redirects to the new project's details page.
 // WHY WE NEED IT: Completes the create-project workflow, the same pattern already used for organizations.
 // LEARNING GAP: A try/catch around the database call lets us flash a friendly error message instead of crashing if the insert fails unexpectedly.
 const processNewProjectForm = async (req, res) => {
@@ -144,7 +144,7 @@ const processNewProjectForm = async (req, res) => {
     }
 };
 
-// PLAIN ENGLISH: The waiter function that displays the edit form for one project, already filled in with its current details.
+// PLAIN ENGLISH: The server looks up one project and shows the edit form, already filled in with its current details.
 // LOGIC: Reads the project ID from the URL, fetches that project and the full organization list, formats the date, then renders edit-project.ejs with all three pieces.
 // WHY WE NEED IT: The user needs to see what is currently saved before changing it, and needs the dropdown of organizations to move the project to a different one.
 // LEARNING GAP: If the project ID does not exist, we send a 404 error instead of showing an empty form -- editing something that is not there makes no sense.
@@ -169,7 +169,7 @@ const showEditProjectForm = async (req, res, next) => {
     }
 };
 
-// PLAIN ENGLISH: The waiter function that receives the edited project form data, validates it, and saves the changes.
+// PLAIN ENGLISH: The server receives the edited project form data, checks it, and saves the changes.
 // LOGIC: Checks validationResult() first; on failure, flashes each error and redirects back to this project's edit form. On success, calls updateProject and redirects to the project's details page.
 // WHY WE NEED IT: Completes the edit-project workflow, the same pattern already used for editing organizations.
 // LEARNING GAP: The project ID comes from the URL (req.params.id), while the new values come from the form (req.body) -- two different places on the same request.
