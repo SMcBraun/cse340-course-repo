@@ -63,7 +63,7 @@
         <!-- PLAIN ENGLISH: The organization dropdown, with the project's current organization already chosen. -->
         <!-- LOGIC: Loops through every organization; when an organization's ID matches the project's organization_id, it adds the word "selected" to that option. -->
         <!-- WHY WE NEED IT: Shows which organization the project belongs to now, while still letting the user move it to a different one. -->
-        <!-- LEARNING GAP: Only one option should get "selected". Without it, the dropdown would show the first organization and could quietly reassign the project by mistake on save. -->
+        <!-- LEARNING GAP: Only one option should get "selected". Without it, the dropdown would show the placeholder "Select an organization", so the user would have to re-pick the organization every time -- and the required rule would block saving until they did. -->
         <div class="form-group">
             <label for="organizationId">Organization</label>
             <select
