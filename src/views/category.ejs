@@ -52,6 +52,12 @@ unstyled <ul> tags that fail accessibility guidelines.
     <% } else { %>
         <p>No service projects currently found for this category.</p>
     <% } %>
+
+    <!-- PLAIN ENGLISH: A link that opens the edit form for this category, already filled in with its current name. -->
+    <!-- LOGIC: A plain anchor tag pointing at this category's edit page, using its own ID. -->
+    <!-- WHY WE NEED IT: Lets users reach the edit form by clicking, instead of typing the address. -->
+    <!-- LEARNING GAP: Clicking this link only SHOWS the form (GET) -- nothing changes until the user clicks Update Category, which sends POST. -->
+    <p><a href="/edit-category/<%= category.category_id %>">Edit Category</a></p>
 </main>
 
 <%- include('partials/footer') %>

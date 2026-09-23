@@ -71,11 +71,52 @@ const updateCategoryAssignments = async (projectId, categoryIds) => {
     }
 };
 
+// PLAIN ENGLISH: Save a brand new category (like "Education") into the database.
+// LOGIC: An asynchronous INSERT query that adds one row to the category table with the given name, returning the new row's auto-generated ID.
+// WHY WE NEED IT: Powers the "New Category" form so a submitted name actually gets stored.
+// LEARNING GAP: The $1 placeholder is a parameterized query -- the database treats the typed name strictly as data, never as SQL commands, which blocks SQL injection attacks.
+const createCategory = async (name) => {
+    const sql = `
+    INSERT INTO public.category (name)
+    VALUES ($1)
+    RETURNING category_id;
+  `;
+    const result = await db.query(sql, [name]);
+
+    if (result.rows.length === 0) {
+        throw new Error('Failed to create category');
+    }
+
+    return result.rows[0].category_id;
+};
+
+// PLAIN ENGLISH: Change the name of one existing category.
+// LOGIC: An asynchronous UPDATE query that finds the row by category_id ($2) and replaces its name with the new value ($1), returning the category_id to confirm a row was changed.
+// WHY WE NEED IT: Powers the "Edit Category" form so users can fix a typo or rename a category without deleting it.
+// LEARNING GAP: The WHERE clause is critical -- without it, UPDATE would rename EVERY category in the table. If no row comes back, the ID did not match anything, so we throw an error instead of pretending it worked.
+const updateCategory = async (categoryId, name) => {
+    const sql = `
+    UPDATE public.category
+    SET name = $1
+    WHERE category_id = $2
+    RETURNING category_id;
+  `;
+    const result = await db.query(sql, [name, categoryId]);
+
+    if (result.rows.length === 0) {
+        throw new Error('Category not found or failed to update');
+    }
+
+    return result.rows[0].category_id;
+};
+
 // Export all model functions using arrow notation
 export default {
     getCategories,
     getCategoryById,
     getProjectsByCategoryId,
     getCategoriesByProjectId,
-    updateCategoryAssignments
+    updateCategoryAssignments,
+    createCategory,
+    updateCategory
 };

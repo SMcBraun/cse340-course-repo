@@ -1,0 +1,30 @@
+<%- include('partials/header') %>
+<main>
+    <h1><%= title %></h1>
+
+    <!-- PLAIN ENGLISH: A simple form with one box where the user types a new category name. -->
+    <!-- LOGIC: When submitted, the browser sends the typed name to the server using POST, where the server checks it and saves it. -->
+    <!-- WHY WE NEED IT: Gives users a way to add new categories, like "Education", without touching the database directly. -->
+    <!-- LEARNING GAP: The browser here only checks that the box is filled in and stops at 100 characters. The 3-character minimum is left OFF on purpose, so the server's check can be tested. -->
+    <form action="/new-category" method="POST">
+        <div class="form-group">
+            <label for="name">Category Name</label>
+            <input
+                type="text"
+                id="name"
+                name="name"
+                maxlength="100"
+                required
+            />
+        </div>
+
+        <button type="submit">Create Category</button>
+    </form>
+
+    <!-- PLAIN ENGLISH: A way back to the categories list without saving anything. -->
+    <!-- LOGIC: A plain link to the categories page. -->
+    <!-- WHY WE NEED IT: Gives the user an easy exit if they change their mind. -->
+    <!-- LEARNING GAP: Clicking a link sends a GET request, so nothing is saved -- only the Create button sends POST. -->
+    <p><a href="/categories">Cancel</a></p>
+</main>
+<%- include('partials/footer') %>

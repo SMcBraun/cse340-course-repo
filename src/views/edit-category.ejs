@@ -1,0 +1,31 @@
+<%- include('partials/header') %>
+<main>
+    <h1><%= title %></h1>
+
+    <!-- PLAIN ENGLISH: Same form as New Category, but the box starts filled in with the category's current name. -->
+    <!-- LOGIC: The form sends to this category's own edit address using POST, and the box's starting text comes from the category data the server looked up. -->
+    <!-- WHY WE NEED IT: Lets the user see the current name and fix it, instead of retyping it from scratch. -->
+    <!-- LEARNING GAP: An edit form is a create form plus pre-filled values plus a different destination address. The 3-character minimum is left OFF here too, so the server's check can be tested. -->
+    <form action="/edit-category/<%= category.category_id %>" method="POST">
+        <div class="form-group">
+            <label for="name">Category Name</label>
+            <input
+                type="text"
+                id="name"
+                name="name"
+                value="<%= category.name %>"
+                maxlength="100"
+                required
+            />
+        </div>
+
+        <button type="submit">Update Category</button>
+    </form>
+
+    <!-- PLAIN ENGLISH: A way back to this category's page without saving any changes. -->
+    <!-- LOGIC: A plain link to this category's details page, using its own ID. -->
+    <!-- WHY WE NEED IT: Gives the user an easy exit if they change their mind. -->
+    <!-- LEARNING GAP: Clicking a link sends a GET request, so nothing is saved -- only the Update button sends POST. -->
+    <p><a href="/category/<%= category.category_id %>">Cancel</a></p>
+</main>
+<%- include('partials/footer') %>

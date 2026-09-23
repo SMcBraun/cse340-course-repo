@@ -41,6 +41,12 @@ navigation dynamically to relational database IDs.
             </li>
         <% }); %>
     </ul>
+
+    <!-- PLAIN ENGLISH: A link that opens the blank form for adding a brand new category. -->
+    <!-- LOGIC: A plain anchor tag pointing at the New Category page. -->
+    <!-- WHY WE NEED IT: Lets users reach the create-category form by clicking, instead of typing the address. -->
+    <!-- LEARNING GAP: Same pattern as the "Add a New Service Project" link on the projects page -- a list page offers a way to add to that list. -->
+    <p><a href="/new-category">Add a New Category</a></p>
 </main>
 
 <%- include('partials/footer') %>

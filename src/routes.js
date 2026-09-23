@@ -48,6 +48,30 @@ router.post('/edit-project/:id', projectValidation, processEditProjectForm);
 router.get('/categories', categoriesController.showCategories);
 router.get('/category/:id', categoriesController.showCategoryDetails);
 
+// PLAIN ENGLISH: When someone opens the New Category page, the server shows the blank form.
+// LOGIC: Registers a GET route handled by showNewCategoryForm.
+// WHY WE NEED IT: Gives users a web address where they can add a brand new category.
+// LEARNING GAP: GET only SHOWS a page -- nothing is saved until the form is submitted with POST.
+router.get('/new-category', categoriesController.showNewCategoryForm);
+
+// PLAIN ENGLISH: When the New Category form is submitted, the server checks the name, then saves it.
+// LOGIC: Registers a POST route that runs categoryValidation first, then processNewCategoryForm.
+// WHY WE NEED IT: Completes the create-category feature with server-side checking before anything reaches the database.
+// LEARNING GAP: The checklist runs BEFORE the save function -- the order of items in a route matters, left to right.
+router.post('/new-category', categoriesController.categoryValidation, categoriesController.processNewCategoryForm);
+
+// PLAIN ENGLISH: When someone opens the edit page for category 5, the server shows the form, already filled in.
+// LOGIC: Registers a GET route capturing the category's ID as :id, handled by showEditCategoryForm.
+// WHY WE NEED IT: Gives users a web address to open when they want to rename an existing category.
+// LEARNING GAP: The :id part is a placeholder -- whatever number is in the address becomes req.params.id in the controller.
+router.get('/edit-category/:id', categoriesController.showEditCategoryForm);
+
+// PLAIN ENGLISH: When the edit form for category 5 is submitted, the server checks the name, then saves the change.
+// LOGIC: Registers a POST route that runs categoryValidation first, then processEditCategoryForm.
+// WHY WE NEED IT: Completes the edit-category feature with server-side checking before the update reaches the database.
+// LEARNING GAP: The same address as the GET route above -- the server tells them apart by the method (GET shows, POST saves).
+router.post('/edit-category/:id', categoriesController.categoryValidation, categoriesController.processEditCategoryForm);
+
 // PLAIN ENGLISH: Match /assign-categories/5 and show a checkbox form for tagging project 5 with categories.
 // LOGIC: Registers a GET route capturing the project's ID as :projectId.
 // WHY WE NEED IT: Lets users open the category-assignment checklist for one specific project.
