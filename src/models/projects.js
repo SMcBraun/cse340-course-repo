@@ -143,6 +143,40 @@ const createProject = async (title, description, location, date, organizationId)
 };
 
 // ============================================================================
+// UPDATE PROJECT MODEL QUERY
+// ============================================================================
+
+// PLAIN ENGLISH: Change the saved details of one existing service project, including which organization it belongs to.
+// LOGIC: An asynchronous UPDATE query that finds the row by project_id ($6) and overwrites its five editable columns with the new values ($1-$5), returning the project_id to confirm a row was changed.
+// WHY WE NEED IT: Powers the "edit service project" form so users can fix mistakes or reschedule a project without deleting and re-creating it.
+// LEARNING GAP: The $1-$6 placeholders are parameterized queries -- the database treats user input strictly as data, never as SQL commands, which blocks SQL injection attacks. The WHERE clause is critical: without it, UPDATE would overwrite EVERY project in the table.
+const updateProject = async (projectId, title, description, location, date, organizationId) => {
+  const query = `
+      UPDATE project
+      SET title = $1,
+          description = $2,
+          location = $3,
+          project_date = $4,
+          organization_id = $5
+      WHERE project_id = $6
+      RETURNING project_id;
+    `;
+
+  const queryParams = [title, description, location, date, organizationId, projectId];
+  const result = await db.query(query, queryParams);
+
+  // PLAIN ENGLISH: If no row came back, the project ID did not match anything, so nothing was updated.
+  // LOGIC: RETURNING only sends back rows that were actually changed; zero rows means the update failed.
+  // WHY WE NEED IT: Throwing an error lets the controller's try/catch show a friendly message instead of pretending it worked.
+  // LEARNING GAP: An UPDATE that matches zero rows is NOT a database error on its own -- we have to check for it ourselves.
+  if (result.rows.length === 0) {
+    throw new Error('Project not found or failed to update');
+  }
+
+  return result.rows[0].project_id;
+};
+
+// ============================================================================
 // MODULE EXPORTS
 // ============================================================================
 
@@ -152,5 +186,6 @@ export {
   getUpcomingProjects,
   getProjectDetails,
   getCategoriesByProjectId,
-  createProject
+  createProject,
+  updateProject
 };

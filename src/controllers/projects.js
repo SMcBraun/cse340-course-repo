@@ -10,7 +10,8 @@ import {
     getUpcomingProjects,
     getProjectDetails,
     getCategoriesByProjectId,
-    createProject
+    createProject,
+    updateProject
 } from '../models/projects.js';
 
 // PLAIN ENGLISH: Import the organizations lookup so the new project form can offer a dropdown of choices.
@@ -51,6 +52,22 @@ const projectValidation = [
         .notEmpty().withMessage('Organization is required')
         .isInt().withMessage('Organization must be a valid integer')
 ];
+
+// ============================================================================
+// HELPER FUNCTIONS
+// ============================================================================
+
+// PLAIN ENGLISH: Convert a database date into the YYYY-MM-DD text format that an HTML date picker understands.
+// LOGIC: Reads the year, month, and day from the Date object, pads month and day to two digits, and joins them with dashes.
+// WHY WE NEED IT: An <input type="date"> stays blank unless its value is exactly YYYY-MM-DD, so the edit form could not show the project's current date without this.
+// LEARNING GAP: We use getFullYear/getMonth/getDate (local time) instead of toISOString(), because toISOString() converts to UTC time and can shift the date back one day depending on the server's time zone. getMonth() counts from 0 (January = 0), so we add 1.
+const formatDateForInput = (dateValue) => {
+    const date = new Date(dateValue);
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+};
 
 // ============================================================================
 // CONTROLLER HANDLERS
@@ -101,7 +118,7 @@ const showNewProjectForm = async (req, res, next) => {
 };
 
 // PLAIN ENGLISH: The waiter function that receives the new project form data, validates it, and saves it.
-// LOGIC: Checks validationResult() first; on failure, flashes each error and redirects back to the form. On success, calls createProject and redirects to the new project's details page.
+// LOGIC: Checks validationResult() first; on failure, flashes each error and redirects back to the form.On success, calls createProject and redirects to the new project's details page.
 // WHY WE NEED IT: Completes the create-project workflow, the same pattern already used for organizations.
 // LEARNING GAP: A try/catch around the database call lets us flash a friendly error message instead of crashing if the insert fails unexpectedly.
 const processNewProjectForm = async (req, res) => {
@@ -127,6 +144,60 @@ const processNewProjectForm = async (req, res) => {
     }
 };
 
+// PLAIN ENGLISH: The waiter function that displays the edit form for one project, already filled in with its current details.
+// LOGIC: Reads the project ID from the URL, fetches that project and the full organization list, formats the date, then renders edit-project.ejs with all three pieces.
+// WHY WE NEED IT: The user needs to see what is currently saved before changing it, and needs the dropdown of organizations to move the project to a different one.
+// LEARNING GAP: If the project ID does not exist, we send a 404 error instead of showing an empty form -- editing something that is not there makes no sense.
+const showEditProjectForm = async (req, res, next) => {
+    try {
+        const projectId = req.params.id;
+        const project = await getProjectDetails(projectId);
+
+        if (!project) {
+            const err = new Error(`Project with ID ${projectId} not found`);
+            err.status = 404;
+            return next(err);
+        }
+
+        const organizations = await getAllOrganizations();
+        const formattedDate = formatDateForInput(project.project_date);
+        const title = 'Edit Service Project';
+
+        res.render('edit-project', { title, project, organizations, formattedDate });
+    } catch (error) {
+        next(error);
+    }
+};
+
+// PLAIN ENGLISH: The waiter function that receives the edited project form data, validates it, and saves the changes.
+// LOGIC: Checks validationResult() first; on failure, flashes each error and redirects back to this project's edit form. On success, calls updateProject and redirects to the project's details page.
+// WHY WE NEED IT: Completes the edit-project workflow, the same pattern already used for editing organizations.
+// LEARNING GAP: The project ID comes from the URL (req.params.id), while the new values come from the form (req.body) -- two different places on the same request.
+const processEditProjectForm = async (req, res) => {
+    const projectId = req.params.id;
+
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        errors.array().forEach((error) => {
+            req.flash('error', error.msg);
+        });
+        return res.redirect(`/edit-project/${projectId}`);
+    }
+
+    const { title, description, location, date, organizationId } = req.body;
+
+    try {
+        await updateProject(projectId, title, description, location, date, organizationId);
+
+        req.flash('success', 'Service project updated successfully!');
+        res.redirect(`/project/${projectId}`);
+    } catch (error) {
+        console.error('Error updating project:', error);
+        req.flash('error', 'There was an error updating the service project.');
+        res.redirect(`/edit-project/${projectId}`);
+    }
+};
+
 // ============================================================================
 // MODULE EXPORTS
 // ============================================================================
@@ -136,5 +207,7 @@ export {
     showProjectDetailsPage,
     showNewProjectForm,
     processNewProjectForm,
+    showEditProjectForm,
+    processEditProjectForm,
     projectValidation
 };

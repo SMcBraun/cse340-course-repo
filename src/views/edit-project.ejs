@@ -1,0 +1,90 @@
+<%- include('partials/header') %>
+<main>
+    <h1><%= title %></h1>
+
+    <!-- PLAIN ENGLISH: Same form as new-project, but every field starts filled in with the project's current data. -->
+    <!-- LOGIC: The form action targets /edit-project/{id} instead of /new-project, and each input's value is set from the project object sent by the controller. -->
+    <!-- WHY WE NEED IT: Lets the user see and change existing values instead of retyping everything from scratch. -->
+    <!-- LEARNING GAP: An edit form is a create form plus pre-filled values plus a different destination URL. -->
+    <form action="/edit-project/<%= project.project_id %>" method="POST">
+        <div class="form-group">
+            <label for="title">Project Title</label>
+            <input
+                type="text"
+                id="title"
+                name="title"
+                value="<%= project.title %>"
+                maxlength="200"
+                required
+            />
+        </div>
+
+        <!-- PLAIN ENGLISH: The description box, pre-filled with the current description. -->
+        <!-- LOGIC: A textarea has no value attribute, so the current text goes BETWEEN the opening and closing tags. -->
+        <!-- WHY WE NEED IT: Shows the saved description so the user can edit it instead of rewriting it. -->
+        <!-- LEARNING GAP: Keep the EJS tag touching both textarea tags -- any spaces or line breaks in between become part of the saved text. -->
+        <div class="form-group">
+            <label for="description">Description</label>
+            <textarea
+                id="description"
+                name="description"
+                maxlength="1000"
+                required
+            ><%= project.description %></textarea>
+        </div>
+
+        <div class="form-group">
+            <label for="location">Location</label>
+            <input
+                type="text"
+                id="location"
+                name="location"
+                value="<%= project.location %>"
+                maxlength="200"
+                required
+            />
+        </div>
+
+        <!-- PLAIN ENGLISH: The date picker, pre-filled with the project's current date. -->
+        <!-- LOGIC: Uses formattedDate (YYYY-MM-DD), which the controller already converted using the formatDateForInput helper. -->
+        <!-- WHY WE NEED IT: A date input stays blank unless its value is in exactly YYYY-MM-DD format. -->
+        <!-- LEARNING GAP: The raw project.project_date would NOT work here -- it is a long date like "Thu Oct 15 2026...", which the date picker cannot read. -->
+        <div class="form-group">
+            <label for="date">Date</label>
+            <input
+                type="date"
+                id="date"
+                name="date"
+                value="<%= formattedDate %>"
+                required
+            />
+        </div>
+
+        <!-- PLAIN ENGLISH: The organization dropdown, with the project's current organization already chosen. -->
+        <!-- LOGIC: Loops through every organization; when an organization's ID matches the project's organization_id, it adds the word "selected" to that option. -->
+        <!-- WHY WE NEED IT: Shows which organization the project belongs to now, while still letting the user move it to a different one. -->
+        <!-- LEARNING GAP: Only one option should get "selected". Without it, the dropdown would show the first organization and could quietly reassign the project by mistake on save. -->
+        <div class="form-group">
+            <label for="organizationId">Organization</label>
+            <select
+                id="organizationId"
+                name="organizationId"
+                required
+            >
+                <option value="">Select an organization</option>
+                <% organizations.forEach(org => { %>
+                    <option value="<%= org.organization_id %>" <%= org.organization_id === project.organization_id ? 'selected' : '' %>><%= org.name %></option>
+                <% }); %>
+            </select>
+        </div>
+
+        <button type="submit">Update Project</button>
+    </form>
+
+    <!-- PLAIN ENGLISH: A way back to the project's details page without saving any changes. -->
+    <!-- LOGIC: A plain link to /project/{id}. -->
+    <!-- WHY WE NEED IT: Gives the user an easy exit if they change their mind. -->
+    <!-- LEARNING GAP: Clicking a link sends a GET request, so nothing is saved -- only the Update button sends POST. -->
+    <p><a href="/project/<%= project.project_id %>">Cancel</a></p>
+</main>
+<%- include('partials/footer') %>

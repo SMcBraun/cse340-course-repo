@@ -69,6 +69,12 @@ can click the [Environmental] tag to discover all other environmental projects.
         <% } %>
     </section>
 
+    <!-- PLAIN ENGLISH: A link that opens the edit form for this project, already filled in with its current details. -->
+    <!-- LOGIC: A plain anchor tag pointing at /edit-project/{id}, using this project's own ID. -->
+    <!-- WHY WE NEED IT: Gives users a way to reach the edit form directly from the project's details page instead of typing the address by hand. -->
+    <!-- LEARNING GAP: Clicking this link sends a GET request, so it only SHOWS the form -- nothing changes until the user clicks Update Project, which sends POST. -->
+    <p><a href="/edit-project/<%= project.project_id %>">Edit Project</a></p>
+
     <!-- PLAIN ENGLISH: A link that opens the checkbox form for changing which categories tag this project. -->
     <!-- LOGIC: A plain anchor tag pointing at /assign-categories/{id}, using this project's own ID. -->
     <!-- WHY WE NEED IT: Gives users a way to reach the category-assignment form directly from a project's details page. -->

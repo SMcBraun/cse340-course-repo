@@ -9,7 +9,7 @@ Centralized route definitions mapping HTTP paths to controller actions.
 import express from 'express';
 import { showHomePage } from './controllers/index.js';
 import { showOrganizationsPage, showOrganizationDetailsPage, showNewOrganizationForm, processNewOrganizationForm, showEditOrganizationForm, processEditOrganizationForm, organizationValidation } from './controllers/organizations.js';
-import { showProjectsPage, showProjectDetailsPage, showNewProjectForm, processNewProjectForm, projectValidation } from './controllers/projects.js';
+import { showProjectsPage, showProjectDetailsPage, showNewProjectForm, processNewProjectForm, showEditProjectForm, processEditProjectForm, projectValidation } from './controllers/projects.js';
 import categoriesController from './controllers/categories.js';
 import { testErrorPage } from './controllers/errors.js';
 
@@ -31,6 +31,18 @@ router.get('/projects', showProjectsPage);
 router.get('/new-project', showNewProjectForm);
 router.post('/new-project', projectValidation, processNewProjectForm);
 router.get('/project/:id', showProjectDetailsPage);
+
+// PLAIN ENGLISH: Match /edit-project/5 and show the edit form for project 5, already filled in.
+// LOGIC: Registers a GET route capturing the project's ID as :id, handled by showEditProjectForm.
+// WHY WE NEED IT: Gives users a web address to open when they want to change an existing project.
+// LEARNING GAP: GET is for asking the server to SHOW something -- it never changes data in the database.
+router.get('/edit-project/:id', showEditProjectForm);
+
+// PLAIN ENGLISH: Match the edit form submission for project 5, check the data, and save the changes.
+// LOGIC: Registers a POST route that runs projectValidation first, then processEditProjectForm.
+// WHY WE NEED IT: Completes the edit-project workflow by sending the user's changes to the database.
+// LEARNING GAP: We reuse projectValidation because the edit form has the same fields as the new-project form, so the same rules apply -- write once, use twice.
+router.post('/edit-project/:id', projectValidation, processEditProjectForm);
 
 // Category routes
 router.get('/categories', categoriesController.showCategories);
