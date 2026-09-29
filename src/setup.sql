@@ -8,6 +8,14 @@ COURSE: CSE 340 - Web Backend Development
 -- =================================================================
 -- STEP 0: Clean up old tables to avoid duplicate entries & key conflicts
 -- =================================================================
+-- PLAIN ENGLISH: Delete old tables (if they exist) so we can rebuild fresh.
+-- LOGIC: users drops before roles, and project_category before project,
+--        because a table that points to another must be removed first.
+-- WHY WE NEED IT: Lets this file run again without "already exists" errors.
+-- LEARNING GAP: CASCADE also removes anything that depends on the table.
+--               IF EXISTS means "skip quietly if the table isn't there."
+DROP TABLE IF EXISTS public.users CASCADE;
+DROP TABLE IF EXISTS public.roles CASCADE;
 DROP TABLE IF EXISTS public.project_category CASCADE;
 DROP TABLE IF EXISTS public.project CASCADE;
 DROP TABLE IF EXISTS public.category CASCADE;
@@ -109,3 +117,44 @@ INSERT INTO public.project_category (project_id, category_id) VALUES
 (1, 3), (2, 3), (3, 3), (4, 3), (5, 3),
 (6, 1), (7, 1), (8, 1), (9, 1), (10, 1),
 (11, 4), (12, 2), (13, 3), (14, 4), (15, 4);
+
+-- ====================================================================
+-- STEP 7: Build the "roles" table and add the starting roles (Week 5)
+-- ====================================================================
+-- PLAIN ENGLISH: A list of the types of users the site allows.
+-- LOGIC: role_id numbers itself (1, 2...). role_name must be filled in
+--        and can't repeat. role_description is an optional longer note.
+-- WHY WE NEED IT: Authorization. The role decides what a logged-in
+--                 person is allowed to do (e.g., only admins can edit).
+-- LEARNING GAP: We skip role_id in the INSERT because SERIAL fills it in.
+--               Result: 1 = user, 2 = admin. The users table uses these numbers.
+CREATE TABLE roles (
+    role_id SERIAL PRIMARY KEY,
+    role_name VARCHAR(50) UNIQUE NOT NULL,
+    role_description TEXT
+);
+
+INSERT INTO roles (role_name, role_description) VALUES 
+    ('user', 'Standard user with basic access'),
+    ('admin', 'Administrator with full system access');
+
+-- ====================================================================
+-- STEP 8: Build the "users" table (Week 5)
+-- ====================================================================
+-- PLAIN ENGLISH: Stores each person who has an account on the site.
+-- LOGIC: email is the login name (required, no duplicates).
+--        role_id points to a row in roles. created_at fills in automatically.
+-- WHY WE NEED IT: Authentication. The site checks this table to confirm
+--                 who someone is when they log in.
+-- LEARNING GAP: password_hash stores a scrambled password, never the real one.
+--               REFERENCES roles(role_id) is the foreign key: the database
+--               rejects any role_id that doesn't exist in roles. roles must
+--               be built first, the same way organization comes before project.
+CREATE TABLE users (
+    user_id SERIAL PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) UNIQUE NOT NULL,
+    password_hash VARCHAR(255) NOT NULL,
+    role_id INTEGER REFERENCES roles(role_id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
