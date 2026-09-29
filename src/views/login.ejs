@@ -1,0 +1,65 @@
+<%# 
+====================================================================
+FILE: src/views/login.ejs
+COURSE: CSE 340 - Web Backend Development (Week 5)
+====================================================================
+PLAIN ENGLISH: The sign-in page where a registered person logs in.
+LOGIC: Shown by showLoginForm (GET /login). When submitted, the form sends
+       email and password to POST /login (processLoginForm).
+WHY WE NEED IT: People need a form to prove who they are (authentication).
+LEARNING GAP: Only email and password are needed here, not name. The server
+              looks up the user by email in the users table, then bcrypt
+              compares the typed password to the stored hash.
+%>
+<%- include('partials/header') %>
+    <main>
+        <%# title comes from the controller: res.render('login', { title: 'Login' }) %>
+        <h1><%= title %></h1>
+
+        <%# 
+        PLAIN ENGLISH: The login form.
+        LOGIC: method="POST" sends the data in the request body.
+               action="/login" sends it to the POST /login route.
+        WHY WE NEED IT: Connects this form to processLoginForm.
+        LEARNING GAP: POST keeps the password out of the web address bar and
+                      browser history, which GET would expose.
+        %>
+        <form action="/login" method="POST">
+
+            <%# 
+            PLAIN ENGLISH: Email box (the username).
+            LOGIC: name="email" becomes req.body.email in the controller.
+            WHY WE NEED IT: The server finds the account by email (findUserByEmail).
+            LEARNING GAP: Must be the same email used when registering.
+            %>
+            <div class="form-group">
+                <label for="email">Email (Username)</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    required
+                />
+            </div>
+
+            <%# 
+            PLAIN ENGLISH: Password box.
+            LOGIC: name="password" becomes req.body.password in the controller.
+            WHY WE NEED IT: bcrypt.compare checks it against the stored hash.
+            LEARNING GAP: The typed password is never saved. It's only compared,
+                          then thrown away.
+            %>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    required
+                />
+            </div>
+            <button type="submit">Login</button>
+        </form>
+    </main>   
+
+<%- include('partials/footer') %>

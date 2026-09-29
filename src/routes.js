@@ -17,7 +17,7 @@ import { testErrorPage } from './controllers/errors.js';
 // LOGIC: Named imports from src/controllers/users.js; names match its export exactly.
 // WHY WE NEED IT: The /register routes below need these functions to run.
 // LEARNING GAP: If a name here is misspelled, the server won't start at all.
-import { showUserRegistrationForm, processUserRegistrationForm } from './controllers/users.js';
+import { showUserRegistrationForm, processUserRegistrationForm, showLoginForm, processLoginForm, processLogout } from './controllers/users.js';
 
 const router = express.Router();
 
@@ -103,6 +103,26 @@ router.get('/register', showUserRegistrationForm);
 // WHY WE NEED IT: Completes the registration feature by storing the account in the users table.
 // LEARNING GAP: Same address as the GET route above -- the server tells them apart by the method (GET shows, POST saves).
 router.post('/register', processUserRegistrationForm);
+
+// User login routes
+
+// PLAIN ENGLISH: When someone opens /login, the server shows the login form.
+// LOGIC: Registers a GET route handled by showLoginForm.
+// WHY WE NEED IT: Gives users a web address where they can sign in.
+// LEARNING GAP: GET only SHOWS the form -- the password isn't checked until the form is submitted with POST.
+router.get('/login', showLoginForm);
+
+// PLAIN ENGLISH: When the login form is submitted, the server checks the email and password and starts the session.
+// LOGIC: Registers a POST route handled by processLoginForm.
+// WHY WE NEED IT: This is where the server decides if the person is who they say they are (authentication).
+// LEARNING GAP: Same address as the GET route above -- the server tells them apart by the method (GET shows, POST checks).
+router.post('/login', processLoginForm);
+
+// PLAIN ENGLISH: When someone clicks Logout, the server forgets who they are and sends them to the login page.
+// LOGIC: Registers a GET route handled by processLogout.
+// WHY WE NEED IT: Gives users a way to end their logged-in session.
+// LEARNING GAP: This is a GET because it's triggered by clicking a plain link in the menu, not by submitting a form.
+router.get('/logout', processLogout);
 
 // Diagnostic test route
 router.get('/test-error', testErrorPage);

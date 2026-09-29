@@ -58,11 +58,16 @@
             <!-- LEARNING GAP: Expands site architecture by mapping new UI entry points to Express route listeners. -->
             <li><a href="/categories">Categories</a></li>
 
-            <!-- PLAIN ENGLISH: Link to the sign-up page. -->
-            <!-- LOGIC: Points to the "/register" route, handled by showUserRegistrationForm. -->
-            <!-- WHY WE NEED IT: Gives visitors a way to find the registration form from any page. -->
-            <!-- LEARNING GAP: Clicking a link always sends a GET request, so it shows the form; submitting the form sends POST. -->
-            <li><a href="/register">Register</a></li>
+            <!-- PLAIN ENGLISH: Show different menu links depending on whether someone is logged in. -->
+            <!-- LOGIC: isLoggedIn comes from res.locals in server.js. true = show Logout. false = show Register and Login. -->
+            <!-- WHY WE NEED IT: Logged-in people need a way out; visitors need a way in or a way to sign up. -->
+            <!-- LEARNING GAP: The <% %> tags run on the server, so the browser only receives the links that apply. Hiding a link is not security; the server still has to protect pages. -->
+            <% if (isLoggedIn) { %>
+                <li><a href="/logout">Logout</a></li>
+            <% } else { %>
+                <li><a href="/register">Register</a></li>
+                <li><a href="/login">Login</a></li>
+            <% } %>
             <!-- LOGIC: Closes the navigation link list. -->
             <!-- LEARNING GAP: Ensures valid list element nesting. -->
         </ul>

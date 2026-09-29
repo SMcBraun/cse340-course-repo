@@ -140,6 +140,18 @@ app.use((req, res, next) => {
 // WHY WE NEED IT: Makes NODE_ENV globally accessible to footer.ejs and error templates without re-passing it in every single render call.
 // LEARNING GAP: Demonstrates res.locals as the shared data bridge between server middleware and EJS presentation templates.
 app.use((req, res, next) => {
+    // PLAIN ENGLISH: Create a true/false flag that says whether someone is logged in.
+    // LOGIC: Starts as false. If the session exists AND has a user in it
+    //        (saved by processLoginForm), it switches to true.
+    // WHY WE NEED IT: header.ejs uses isLoggedIn to show Logout, or Register + Login.
+    // LEARNING GAP: res.locals is shared with EVERY view automatically, so we don't
+    //               have to pass isLoggedIn in each res.render(). This must run after
+    //               the session middleware (line 115), or req.session won't exist yet.
+    res.locals.isLoggedIn = false;
+    if (req.session && req.session.user) {
+        res.locals.isLoggedIn = true;
+    }
+
     res.locals.NODE_ENV = NODE_ENV;
     next();
 });

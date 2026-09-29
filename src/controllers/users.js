@@ -7,16 +7,18 @@ COURSE: CSE 340 - Web Backend Development (Week 5)
 
 // PLAIN ENGLISH: Bring in the bcrypt hashing tool.
 // LOGIC: bcrypt was installed with "npm install bcrypt" (listed in package.json).
-// WHY WE NEED IT: It scrambles the password before it is saved.
+// WHY WE NEED IT: It scrambles the password before it is saved at registration.
 // LEARNING GAP: Hashing is one-way. Nobody, not even you, can turn the hash back
-//               into the real password. Login will later use bcrypt.compare().
+//               into the real password. Login checks passwords in the model
+//               with bcrypt.compare().
 import bcrypt from 'bcrypt';
 
-// PLAIN ENGLISH: Bring in the function that saves a user to the database.
-// LOGIC: createUser lives in src/models/users.js and writes to the users table.
+// PLAIN ENGLISH: Bring in the model functions that save and check users.
+// LOGIC: createUser (register) and authenticateUser (login) live in
+//        src/models/users.js and read/write the users table.
 // WHY WE NEED IT: The controller handles the request; the model handles the SQL.
 // LEARNING GAP: This is MVC. The controller never writes SQL itself.
-import { createUser } from '../models/users.js';
+import { createUser, authenticateUser } from '../models/users.js';
 
 // PLAIN ENGLISH: Show the registration form.
 // LOGIC: Runs on GET /register. Renders src/views/register.ejs with a page title.
@@ -74,8 +76,80 @@ const processUserRegistrationForm = async (req, res) => {
     }
 };
 
-// PLAIN ENGLISH: Share both functions so routes.js can use them.
+// PLAIN ENGLISH: Show the login form.
+// LOGIC: Runs on GET /login. Renders src/views/login.ejs with a page title.
+// WHY WE NEED IT: The person needs a form to type their email and password.
+// LEARNING GAP: Showing a page never changes data, so this doesn't need async.
+const showLoginForm = (req, res) => {
+    res.render('login', { title: 'Login' });
+};
+
+// PLAIN ENGLISH: Handle the submitted login form: check the email and password,
+//                and if correct, remember the person in the session.
+// LOGIC: Runs on POST /login. Calls authenticateUser. A user object back = success:
+//        save it to req.session.user, flash success, go home.
+//        null back = failure: flash an error, go back to the login page.
+// WHY WE NEED IT: This is the moment a visitor becomes a logged-in user.
+// LEARNING GAP: req.session.user is the "wristband." Every later request carries
+//               the session cookie, so the server knows who this is without
+//               asking for the password again. The user object has NO
+//               password_hash (the model removed it).
+//               The error says "email or password" on purpose, so it never
+//               reveals which one was wrong.
+const processLoginForm = async (req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        const user = await authenticateUser(email, password);
+        if (user) {
+            // Store user info in session
+            req.session.user = user;
+            req.flash('success', 'Login successful!');
+
+            // PLAIN ENGLISH: Print the logged-in user in the terminal while developing.
+            // LOGIC: Only runs when res.locals.NODE_ENV is 'development'.
+            // WHY WE NEED IT: Lets you confirm what was saved to the session.
+            // LEARNING GAP: This never prints on the live site (production),
+            //               so user info doesn't clutter Render's logs.
+            if (res.locals.NODE_ENV === 'development') {
+                console.log('User logged in:', user);
+            }
+
+            res.redirect('/');
+        } else {
+            req.flash('error', 'Invalid email or password.');
+            res.redirect('/login');
+        }
+    } catch (error) {
+        // PLAIN ENGLISH: If something broke (like the database), show a friendly error.
+        // LOGIC: Logs details to the terminal, sends the person back to the login page.
+        // WHY WE NEED IT: A crash would show a scary error page instead.
+        // LEARNING GAP: A wrong password is NOT an error here. That's handled by the
+        //               "else" above. catch is only for unexpected problems.
+        console.error('Error during login:', error);
+        req.flash('error', 'An error occurred during login. Please try again.');
+        res.redirect('/login');
+    }
+};
+
+// PLAIN ENGLISH: Log the person out and send them to the login page.
+// LOGIC: Runs on GET /logout. Removes user from the session, flashes a message,
+//        redirects to /login.
+// WHY WE NEED IT: People need a way to end their logged-in session.
+// LEARNING GAP: We delete only req.session.user instead of destroying the whole
+//               session. Flash messages are stored in the session, so destroying
+//               it would also erase the "Logout successful!" message.
+const processLogout = async (req, res) => {
+    if (req.session.user) {
+        delete req.session.user;
+    }
+
+    req.flash('success', 'Logout successful!');
+    res.redirect('/login');
+};
+
+// PLAIN ENGLISH: Share all five functions so routes.js can use them.
 // LOGIC: Named exports, imported in src/routes.js with the same names in { }.
-// WHY WE NEED IT: Routes connect the /register URL to these functions.
+// WHY WE NEED IT: Routes connect /register, /login, and /logout to these functions.
 // LEARNING GAP: Names must match exactly in the import, or the server won't start.
-export { showUserRegistrationForm, processUserRegistrationForm };
+export { showUserRegistrationForm, processUserRegistrationForm, showLoginForm, processLoginForm, processLogout };

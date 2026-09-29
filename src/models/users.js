@@ -12,6 +12,13 @@ COURSE: CSE 340 - Web Backend Development (Week 5)
 //               users and roles tables built in src/setup.sql.
 import db from './db.js'
 
+// PLAIN ENGLISH: Bring in the bcrypt tool so this file can check passwords.
+// LOGIC: bcrypt.compare() is used in verifyPassword below.
+// WHY WE NEED IT: Login must check a typed password against the stored hash.
+// LEARNING GAP: Registration used bcrypt.hash() in the controller. Login uses
+//               bcrypt.compare() here in the model. Same tool, two jobs.
+import bcrypt from 'bcrypt';
+
 // PLAIN ENGLISH: Save a new user to the users table and give back their new ID.
 // LOGIC: Receives name, email, and an already-hashed password from the controller.
 //        The SQL inserts the row, looks up the role_id for the 'user' role,
@@ -55,9 +62,74 @@ const createUser = async (name, email, passwordHash) => {
     return result.rows[0].user_id;
 };
 
-// PLAIN ENGLISH: Share createUser so other files can use it.
-// LOGIC: Named export; the controller imports it with { createUser }.
-// WHY WE NEED IT: src/controllers/users.js needs this function to save users.
-// LEARNING GAP: The name in the curly braces must match exactly on both sides,
-//               or the import fails (this caused an earlier Render deploy error).
-export { createUser };
+// PLAIN ENGLISH: Look up one user by their email address.
+// LOGIC: Selects the user's row from the users table where email matches.
+//        Returns the user, or null if no one has that email.
+// WHY WE NEED IT: Login starts by finding who is trying to log in.
+// LEARNING GAP: This DOES pull password_hash, because the next step needs it
+//               to check the password. It gets removed before the user is
+//               sent anywhere else (see authenticateUser).
+//               Not exported: only authenticateUser uses it, inside this file.
+const findUserByEmail = async (email) => {
+    const query = `
+        SELECT user_id, name, email, password_hash, role_id 
+        FROM users 
+        WHERE email = $1
+    `;
+    const queryParams = [email];
+    
+    const result = await db.query(query, queryParams);
+
+    if (result.rows.length === 0) {
+        return null; // User not found
+    }
+    
+    return result.rows[0];
+};
+
+// PLAIN ENGLISH: Check if a typed password matches the stored hash.
+// LOGIC: bcrypt.compare() hashes the typed password using the salt saved inside
+//        the stored hash, then checks if the two hashes match. Returns true/false.
+// WHY WE NEED IT: The hash can't be un-scrambled, so we compare instead.
+// LEARNING GAP: We never turn the hash back into a password. We scramble the
+//               new attempt the same way and see if it lands on the same result.
+//               Not exported: only authenticateUser uses it, inside this file.
+const verifyPassword = async (password, passwordHash) => {
+    return bcrypt.compare(password, passwordHash);
+};
+
+// PLAIN ENGLISH: The full login check: find the user, check the password,
+//                and hand back the user (without the password hash) if it's correct.
+// LOGIC: 1) findUserByEmail. No user -> null.
+//        2) verifyPassword. Wrong password -> null.
+//        3) Correct -> delete password_hash from the object, return the user.
+// WHY WE NEED IT: This is the one function the login controller calls.
+// LEARNING GAP: Both failures return the same null on purpose, so the controller
+//               can't tell (and can't reveal) whether the email or the password
+//               was wrong. That keeps hackers from learning which emails exist.
+//               "delete" removes the hash so it never ends up in the session.
+const authenticateUser = async (email, password) => {
+    const user = await findUserByEmail(email);
+
+    if (!user) {
+        return null;
+    }
+
+    const isPasswordCorrect = await verifyPassword(password, user.password_hash);
+
+    if (!isPasswordCorrect) {
+        return null;
+    }
+
+    delete user.password_hash;
+    return user;
+};
+
+// PLAIN ENGLISH: Share only the functions the controller needs.
+// LOGIC: Named exports; the controller imports them with { createUser, authenticateUser }.
+// WHY WE NEED IT: src/controllers/users.js uses createUser (register) and
+//                 authenticateUser (login).
+// LEARNING GAP: findUserByEmail and verifyPassword stay private to this file,
+//               as the assignment asks. The name in the curly braces must match
+//               exactly on both sides, or the import fails.
+export { createUser, authenticateUser };
