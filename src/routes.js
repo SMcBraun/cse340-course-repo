@@ -13,6 +13,12 @@ import { showProjectsPage, showProjectDetailsPage, showNewProjectForm, processNe
 import categoriesController from './controllers/categories.js';
 import { testErrorPage } from './controllers/errors.js';
 
+// PLAIN ENGLISH: Bring in the two registration functions from the user controller.
+// LOGIC: Named imports from src/controllers/users.js; names match its export exactly.
+// WHY WE NEED IT: The /register routes below need these functions to run.
+// LEARNING GAP: If a name here is misspelled, the server won't start at all.
+import { showUserRegistrationForm, processUserRegistrationForm } from './controllers/users.js';
+
 const router = express.Router();
 
 // Home route
@@ -83,6 +89,20 @@ router.get('/assign-categories/:projectId', categoriesController.showAssignCateg
 // WHY WE NEED IT: Completes the assign-categories workflow by writing the user's checkbox choices to the database.
 // LEARNING GAP: No validation middleware runs here -- checkbox selections do not need text-length or format validation the way typed form fields do.
 router.post('/assign-categories/:projectId', categoriesController.processAssignCategoriesForm);
+
+// User registration routes
+
+// PLAIN ENGLISH: When someone opens /register, the server shows the sign-up form.
+// LOGIC: Registers a GET route handled by showUserRegistrationForm.
+// WHY WE NEED IT: Gives new users a web address where they can create an account.
+// LEARNING GAP: GET only SHOWS the form -- no account is created until the form is submitted with POST.
+router.get('/register', showUserRegistrationForm);
+
+// PLAIN ENGLISH: When the sign-up form is submitted, the server hashes the password and saves the new user.
+// LOGIC: Registers a POST route handled by processUserRegistrationForm.
+// WHY WE NEED IT: Completes the registration feature by storing the account in the users table.
+// LEARNING GAP: Same address as the GET route above -- the server tells them apart by the method (GET shows, POST saves).
+router.post('/register', processUserRegistrationForm);
 
 // Diagnostic test route
 router.get('/test-error', testErrorPage);

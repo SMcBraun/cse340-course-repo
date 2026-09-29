@@ -1,0 +1,84 @@
+<%# 
+====================================================================
+FILE: src/views/register.ejs
+COURSE: CSE 340 - Web Backend Development (Week 5)
+====================================================================
+PLAIN ENGLISH: The sign-up page where a new person creates an account.
+LOGIC: Shown by showUserRegistrationForm (GET /register). When submitted,
+       the form sends name, email, and password to POST /register.
+WHY WE NEED IT: People need a form to type their info before an account exists.
+LEARNING GAP: The data typed here goes to req.body in src/controllers/users.js.
+              The password travels to the server as typed; the server hashes it
+              before saving. The database never stores the real password.
+%>
+<%- include('partials/header') %>
+<main>
+    <%# title comes from the controller: res.render('register', { title: 'Register' }) %>
+    <h1><%= title %></h1>
+
+    <%# 
+    PLAIN ENGLISH: The form itself.
+    LOGIC: method="POST" sends the data privately in the request body.
+           action="/register" sends it to the POST /register route.
+    WHY WE NEED IT: Connects this form to processUserRegistrationForm.
+    LEARNING GAP: GET would put the password in the web address, where anyone
+                  could see it. POST keeps it out of the address bar.
+    %>
+    <form action="/register" method="POST">
+
+        <%# 
+        PLAIN ENGLISH: Name box.
+        LOGIC: name="name" becomes req.body.name in the controller.
+        WHY WE NEED IT: Stores the person's display name in users.name.
+        LEARNING GAP: The label's for="name" matches the input's id="name",
+                      so clicking the label jumps into the box (helps accessibility).
+        %>
+        <div class="form-group">
+            <label for="name">Name</label>
+            <input
+                type="text"
+                id="name"
+                name="name"
+                required
+            />
+        </div>
+        
+        <%# 
+        PLAIN ENGLISH: Email box (this is the username).
+        LOGIC: type="email" makes the browser check for a real email format.
+        WHY WE NEED IT: Email is how the person will log in, and it must be unique.
+        LEARNING GAP: The browser check is for convenience only. The real safety
+                      check is on the server (the UNIQUE rule in the database).
+        %>
+        <div class="form-group">
+            <label for="email">Email (Username)</label>
+            <input
+                type="email"
+                id="email"
+                name="email"
+                required
+            />
+        </div>
+
+        <%# 
+        PLAIN ENGLISH: Password box.
+        LOGIC: type="password" shows dots instead of the letters typed.
+        WHY WE NEED IT: The controller hashes this with bcrypt before saving.
+        LEARNING GAP: Hiding the letters on screen is not the same as security.
+                      Hashing on the server is what actually protects it.
+        %>
+        <div class="form-group">
+            <label for="password">Password</label>
+            <input
+                type="password"
+                id="password"
+                name="password"
+                required
+            />
+        </div>
+
+        <button type="submit">Register</button>
+    </form>
+
+</main>
+<%- include('partials/footer') %>
