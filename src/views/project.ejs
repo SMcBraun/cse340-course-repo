@@ -73,13 +73,33 @@ can click the [Environmental] tag to discover all other environmental projects.
     <!-- LOGIC: A plain anchor tag pointing at /edit-project/{id}, using this project's own ID. -->
     <!-- WHY WE NEED IT: Gives users a way to reach the edit form directly from the project's details page instead of typing the address by hand. -->
     <!-- LEARNING GAP: Clicking this link sends a GET request, so it only SHOWS the form -- nothing changes until the user clicks Update Project, which sends POST. -->
-    <p><a href="/edit-project/<%= project.project_id %>">Edit Project</a></p>
+    <%# PLAIN ENGLISH: Show the "Edit Project" link only to admins.
+        LOGIC: user comes from res.locals.user (set in server.js). If someone is logged in
+               AND their role_name is 'admin', the link is shown. Otherwise it is left out.
+        WHY WE NEED IT: Only admins can edit this project, so regular users and visitors
+                        shouldn't see a link that would just send them away with an error.
+        LEARNING GAP: This only hides the link. The real protection is the admin lock on the
+                      route in routes.js. "user &&" comes first because user is null when
+                      nobody is logged in, and reading role_name from null would crash the page. %>
+    <% if (user && user.role_name === 'admin') { %>
+        <p><a href="/edit-project/<%= project.project_id %>">Edit Project</a></p>
+    <% } %>
 
     <!-- PLAIN ENGLISH: A link that opens the checkbox form for changing which categories tag this project. -->
     <!-- LOGIC: A plain anchor tag pointing at /assign-categories/{id}, using this project's own ID. -->
     <!-- WHY WE NEED IT: Gives users a way to reach the category-assignment form directly from a project's details page. -->
     <!-- LEARNING GAP: Same dynamic-ID link pattern used throughout the site (organizations, categories) -- reused again here. -->
-    <p><a href="/assign-categories/<%= project.project_id %>">Edit Categories</a></p>
+    <%# PLAIN ENGLISH: Show the "Edit Categories" link only to admins.
+        LOGIC: user comes from res.locals.user (set in server.js). If someone is logged in
+               AND their role_name is 'admin', the link is shown. Otherwise it is left out.
+        WHY WE NEED IT: Only admins can change which categories this project has, so regular users and visitors
+                        shouldn't see a link that would just send them away with an error.
+        LEARNING GAP: This only hides the link. The real protection is the admin lock on the
+                      route in routes.js. "user &&" comes first because user is null when
+                      nobody is logged in, and reading role_name from null would crash the page. %>
+    <% if (user && user.role_name === 'admin') { %>
+        <p><a href="/assign-categories/<%= project.project_id %>">Edit Categories</a></p>
+    <% } %>
 </main>
 
 <%- include('partials/footer') %>

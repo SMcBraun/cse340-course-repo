@@ -152,6 +152,17 @@ app.use((req, res, next) => {
         res.locals.isLoggedIn = true;
     }
 
+    // PLAIN ENGLISH: Share the logged-in person's info with every page, or null if nobody is logged in.
+    // LOGIC: Copies req.session.user (user_id, name, email, role_name) into res.locals.
+    //        The || null part means: if there's no user in the session, use null instead.
+    // WHY WE NEED IT: Pages like organizations.ejs check the role name to decide
+    //                 whether to show admin-only links (Add, Edit).
+    // LEARNING GAP: Added in W05 Admin Role. Views must check "user &&" first, because
+    //               when nobody is logged in the value is null, and reading role_name
+    //               from null would crash the page. Hiding links is for looks only;
+    //               the admin lock in routes.js is the real protection.
+    res.locals.user = req.session.user || null;
+
     res.locals.NODE_ENV = NODE_ENV;
     next();
 });

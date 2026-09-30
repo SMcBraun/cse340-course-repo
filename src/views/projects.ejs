@@ -49,7 +49,17 @@ data slicing at the database layer before passing it down.
     <!-- LOGIC: A plain anchor tag pointing at the /new-project GET route. -->
     <!-- WHY WE NEED IT: Gives users a way to reach the create-project form directly from the main list page. -->
     <!-- LEARNING GAP: Unlike the project and organization links above, this one has no dynamic ID -- it always points to the same fixed URL. -->
-    <p><a href="/new-project">Add a New Service Project</a></p>
+    <%# PLAIN ENGLISH: Show the "Add a New Service Project" link only to admins.
+        LOGIC: user comes from res.locals.user (set in server.js). If someone is logged in
+               AND their role_name is 'admin', the link is shown. Otherwise it is left out.
+        WHY WE NEED IT: Only admins can create a new service project, so regular users and visitors
+                        shouldn't see a link that would just send them away with an error.
+        LEARNING GAP: This only hides the link. The real protection is the admin lock on the
+                      route in routes.js. "user &&" comes first because user is null when
+                      nobody is logged in, and reading role_name from null would crash the page. %>
+    <% if (user && user.role_name === 'admin') { %>
+        <p><a href="/new-project">Add a New Service Project</a></p>
+    <% } %>
 </main>
 
 <%- include('partials/footer') %>

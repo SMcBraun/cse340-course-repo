@@ -20,6 +20,16 @@
         <!-- LOGIC: A plain anchor tag pointing at the New Organization page. -->
         <!-- WHY WE NEED IT: Lets users reach the create-organization form by clicking, instead of typing the address. -->
         <!-- LEARNING GAP: Same pattern as the Projects and Categories pages -- a list page offers a way to add to that list, so the site feels consistent. -->
-        <p><a href="/new-organization">Add a New Organization</a></p>
+        <%# PLAIN ENGLISH: Show the "Add a New Organization" link only to admins.
+            LOGIC: user comes from res.locals.user (set in server.js). If someone is logged in
+                   AND their role_name is 'admin', the link is shown. Otherwise it is left out.
+            WHY WE NEED IT: Only admins can create a new organization, so regular users and visitors
+                            shouldn't see a link that would just send them away with an error.
+            LEARNING GAP: This only hides the link. The real protection is the admin lock on the
+                          route in routes.js. "user &&" comes first because user is null when
+                          nobody is logged in, and reading role_name from null would crash the page. %>
+        <% if (user && user.role_name === 'admin') { %>
+            <p><a href="/new-organization">Add a New Organization</a></p>
+        <% } %>
     </main>
     <%- include('partials/footer') %>

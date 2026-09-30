@@ -46,7 +46,17 @@ navigation dynamically to relational database IDs.
     <!-- LOGIC: A plain anchor tag pointing at the New Category page. -->
     <!-- WHY WE NEED IT: Lets users reach the create-category form by clicking, instead of typing the address. -->
     <!-- LEARNING GAP: Same pattern as the "Add a New Service Project" link on the projects page -- a list page offers a way to add to that list. -->
-    <p><a href="/new-category">Add a New Category</a></p>
+    <%# PLAIN ENGLISH: Show the "Add a New Category" link only to admins.
+        LOGIC: user comes from res.locals.user (set in server.js). If someone is logged in
+               AND their role_name is 'admin', the link is shown. Otherwise it is left out.
+        WHY WE NEED IT: Only admins can create a new category, so regular users and visitors
+                        shouldn't see a link that would just send them away with an error.
+        LEARNING GAP: This only hides the link. The real protection is the admin lock on the
+                      route in routes.js. "user &&" comes first because user is null when
+                      nobody is logged in, and reading role_name from null would crash the page. %>
+    <% if (user && user.role_name === 'admin') { %>
+        <p><a href="/new-category">Add a New Category</a></p>
+    <% } %>
 </main>
 
 <%- include('partials/footer') %>

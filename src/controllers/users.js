@@ -183,9 +183,9 @@ const requireLogin = (req, res, next) => {
 //        to src/views/dashboard.ejs.
 // WHY WE NEED IT: This is the private page only logged-in users can see.
 // LEARNING GAP: The data comes from the session, not the database. The name and
-//               email were saved at login (the model's SELECT pulled user_id,
-//               name, email, role_id). user.name and user.email match those
-//               column names exactly, so the page won't show blanks.
+//               email were saved at login (the model's SELECT pulls user_id,
+//               name, email, and role_name). user.name and user.email match
+//               those column names exactly, so the page won't show blanks.
 //               No "is there a user?" check is needed here, because the lock
 //               already stopped anyone who isn't logged in.
 const showDashboard = (req, res) => {
@@ -197,13 +197,54 @@ const showDashboard = (req, res) => {
     });
 };
 
-// PLAIN ENGLISH: Share all seven functions so routes.js can use them.
+// PLAIN ENGLISH: The admin lock. It builds a check that only lets in people who
+//                have a certain role (like 'admin').
+// LOGIC: This is a "function factory": the outer function takes the role name
+//        and hands back a new middleware function with that role built in.
+//        The inner middleware runs on each request and checks, in order:
+//        1) Not logged in -> flash error, redirect to /login.
+//        2) Logged in, but the session's role_name doesn't match -> flash
+//           "no permission," redirect to the home page.
+//        3) Role matches -> call next() so the page can load.
+// WHY WE NEED IT: Logging in proves WHO you are (authentication). This checks
+//                 WHAT you're allowed to do (authorization). Only admins should
+//                 add or edit organizations, projects, and categories.
+// LEARNING GAP: A normal middleware only receives req, res, next. There's no
+//               spot to say WHICH role is needed. The factory solves that: in
+//               routes.js, requireRole('admin') runs once when the server starts
+//               and builds the admin-only check. The same code could build a
+//               check for any other role later.
+//               role_name is in the session because the model's JOIN added it
+//               at login. Anyone logged in before that change must log out and
+//               back in to get it.
+//               "return" before each redirect stops the code so next() never
+//               runs after a redirect.
+const requireRole = (role) => {
+    return (req, res, next) => {
+        // Check if user is logged in first
+        if (!req.session || !req.session.user) {
+            req.flash('error', 'You must be logged in to access this page.');
+            return res.redirect('/login');
+        }
+
+        // Check if user's role matches the required role
+        if (req.session.user.role_name !== role) {
+            req.flash('error', 'You do not have permission to access this page.');
+            return res.redirect('/');
+        }
+
+        // User has required role, continue
+        next();
+    };
+};
+
+// PLAIN ENGLISH: Share all eight functions so routes.js can use them.
 // LOGIC: Named exports, imported in src/routes.js with the same names in { }.
-// WHY WE NEED IT: Routes connect /register, /login, /logout, and /dashboard to
-//                 these functions.
+// WHY WE NEED IT: Routes connect /register, /login, /logout, /dashboard, and the
+//                 admin-only pages to these functions.
 // LEARNING GAP: Names must match exactly in the import, or the server won't start.
-//               The lock is exported like any other function, even though it's
-//               middleware. It goes inside the route line, before showDashboard.
+//               The two locks are exported like any other function, even though
+//               they're middleware. They go inside route lines, before the page.
 //               This project uses "export { }" (ES Modules), not the sample's
 //               "module.exports" (the older CommonJS style).
-export { showUserRegistrationForm, processUserRegistrationForm, showLoginForm, processLoginForm, processLogout, requireLogin, showDashboard };
+export { showUserRegistrationForm, processUserRegistrationForm, showLoginForm, processLoginForm, processLogout, requireLogin, showDashboard, requireRole };

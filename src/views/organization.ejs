@@ -17,7 +17,17 @@
         <!-- LOGIC: Builds a dynamic link to /edit-organization/{id}, inserting this specific organization's ID number. -->
         <!-- WHY WE NEED IT: Lets the user navigate to a pre-filled edit form for this exact organization record. -->
         <!-- LEARNING GAP: Reuses the same dynamic-URL pattern as /category/:id and /project/:id — one pattern, many uses. -->
-        <p><a href="/edit-organization/<%= organizationDetails.organization_id %>">Edit Organization</a></p>
+        <%# PLAIN ENGLISH: Show the "Edit Organization" link only to admins.
+            LOGIC: user comes from res.locals.user (set in server.js). If someone is logged in
+                   AND their role_name is 'admin', the link is shown. Otherwise it is left out.
+            WHY WE NEED IT: Only admins can edit this organization, so regular users and visitors
+                            shouldn't see a link that would just send them away with an error.
+            LEARNING GAP: This only hides the link. The real protection is the admin lock on the
+                          route in routes.js. "user &&" comes first because user is null when
+                          nobody is logged in, and reading role_name from null would crash the page. %>
+        <% if (user && user.role_name === 'admin') { %>
+            <p><a href="/edit-organization/<%= organizationDetails.organization_id %>">Edit Organization</a></p>
+        <% } %>
 
         <!-- Associated Projects List -->
         <h3>Service Projects</h3>

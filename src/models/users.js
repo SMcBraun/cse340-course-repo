@@ -62,19 +62,30 @@ const createUser = async (name, email, passwordHash) => {
     return result.rows[0].user_id;
 };
 
-// PLAIN ENGLISH: Look up one user by their email address.
-// LOGIC: Selects the user's row from the users table where email matches.
-//        Returns the user, or null if no one has that email.
-// WHY WE NEED IT: Login starts by finding who is trying to log in.
-// LEARNING GAP: This DOES pull password_hash, because the next step needs it
+// PLAIN ENGLISH: Look up one user by their email address, including their role name.
+// LOGIC: Joins the users table (nicknamed u) to the roles table (nicknamed r),
+//        matching each user's role_id to the roles row with the same role_id.
+//        Returns user_id, name, email, password_hash, and role_name
+//        ('user' or 'admin'), or null if no one has that email.
+// WHY WE NEED IT: Login starts by finding who is trying to log in. The role name
+//                 rides along into the session, so requireRole can check it later
+//                 without asking the database again.
+// LEARNING GAP: Changed in W05 Admin Role. Before, this returned role_id (a number
+//               like 2). Now it returns role_name (a word like 'admin'), which is
+//               easier to read and check. The assignment's sample query leaves out
+//               name, but we keep it so the dashboard can still show the name.
+//               u and r are short nicknames (aliases) so we don't have to type
+//               users. and roles. in front of every column.
+//               This DOES pull password_hash, because the next step needs it
 //               to check the password. It gets removed before the user is
 //               sent anywhere else (see authenticateUser).
 //               Not exported: only authenticateUser uses it, inside this file.
 const findUserByEmail = async (email) => {
     const query = `
-        SELECT user_id, name, email, password_hash, role_id 
-        FROM users 
-        WHERE email = $1
+        SELECT u.user_id, u.name, u.email, u.password_hash, r.role_name
+        FROM users u
+        JOIN roles r ON u.role_id = r.role_id
+        WHERE u.email = $1
     `;
     const queryParams = [email];
     
