@@ -1,0 +1,51 @@
+<%#
+====================================================================
+FILE: src/views/dashboard.ejs
+COURSE: CSE 340 - Web Backend Development (Week 5)
+====================================================================
+
+PLAIN ENGLISH: The private dashboard page. It shows the logged-in person's
+               name and email address.
+LOGIC: Rendered by showDashboard in src/controllers/users.js, which sends
+       title, name, and email. The page only loads if the lock in the
+       /dashboard route (requireLogin) finds a user in the session.
+WHY WE NEED IT: Gives logged-in users a page of their own, and gives us a
+                page to prove that route protection works.
+LEARNING GAP: The data comes from req.session.user, saved at login. It is not
+              looked up from the database again. This page never checks if
+              someone is logged in by itself. The route does that before this
+              page is ever rendered.
+%>
+
+<%# PLAIN ENGLISH: Add the shared top of the page (site header and menu).
+    LOGIC: Pulls in src/views/partials/header.ejs.
+    WHY WE NEED IT: Every page looks the same at the top without copying code.
+    LEARNING GAP: The dash in the opening tag prints the partial's HTML as real
+                  HTML. An equals sign would show the tags as plain text. %>
+<%- include('partials/header') %>
+
+<main>
+    <%# PLAIN ENGLISH: The page title at the top.
+        LOGIC: title comes from showDashboard (title: 'Dashboard').
+        WHY WE NEED IT: Matches how every other page shows its title.
+        LEARNING GAP: The equals sign tag prints text safely. If the text had
+                      HTML in it, it would show as plain text, not run. %>
+    <h1><%= title %></h1>
+
+    <%# PLAIN ENGLISH: The "Dashboard" heading and the person's info.
+        LOGIC: name and email come from req.session.user, passed in by showDashboard.
+        WHY WE NEED IT: The assignment asks for a heading plus the user's name and email.
+        LEARNING GAP: If these showed blank, it would mean the names sent from the
+                      controller didn't match the names used here. They match the
+                      model's column names (name, email). %>
+    <h2>Dashboard</h2>
+    <p>Name: <%= name %></p>
+    <p>Email: <%= email %></p>
+</main>
+
+<%# PLAIN ENGLISH: Add the shared bottom of the page (site footer).
+    LOGIC: Pulls in src/views/partials/footer.ejs.
+    WHY WE NEED IT: Closes the page the same way as every other page.
+    LEARNING GAP: The header partial opens tags that the footer partial closes,
+                  so both are needed for a complete page. %>
+<%- include('partials/footer') %>

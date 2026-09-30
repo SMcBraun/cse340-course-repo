@@ -7,5 +7,17 @@
         <p>Our mission is to promote service across the world by connecting volunteers with service opportunities in
             their community.</p>
         <img class="main-logo" src="/images/cse340-service-network.png" alt="CSE 340 Service Network Logo">
+
+        <%# PLAIN ENGLISH: Show a "My Dashboard" link, but only to people who are logged in.
+            LOGIC: The logged-in value comes from res.locals (set for every page, the same
+                   value the header uses for Logout vs. Register/Login). True = show the
+                   link. False = the link is left out of the page completely.
+            WHY WE NEED IT: Gives logged-in users an easy way to reach their dashboard.
+            LEARNING GAP: This only hides the link. It does NOT protect the page. Someone
+                          could still type /dashboard in the address bar. The real
+                          protection is the lock (requireLogin) in the /dashboard route. %>
+        <% if (isLoggedIn) { %>
+            <p><a href="/dashboard">My Dashboard</a></p>
+        <% } %>
     </main>
     <%- include('partials/footer') %>

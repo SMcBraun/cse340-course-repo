@@ -13,11 +13,12 @@ import { showProjectsPage, showProjectDetailsPage, showNewProjectForm, processNe
 import categoriesController from './controllers/categories.js';
 import { testErrorPage } from './controllers/errors.js';
 
-// PLAIN ENGLISH: Bring in the two registration functions from the user controller.
+// PLAIN ENGLISH: Bring in the user functions from the user controller.
 // LOGIC: Named imports from src/controllers/users.js; names match its export exactly.
-// WHY WE NEED IT: The /register routes below need these functions to run.
+//        Covers register, login, logout, the lock (requireLogin), and the dashboard page.
+// WHY WE NEED IT: The /register, /login, /logout, and /dashboard routes below need these functions to run.
 // LEARNING GAP: If a name here is misspelled, the server won't start at all.
-import { showUserRegistrationForm, processUserRegistrationForm, showLoginForm, processLoginForm, processLogout } from './controllers/users.js';
+import { showUserRegistrationForm, processUserRegistrationForm, showLoginForm, processLoginForm, processLogout, requireLogin, showDashboard } from './controllers/users.js';
 
 const router = express.Router();
 
@@ -81,7 +82,7 @@ router.post('/edit-category/:id', categoriesController.categoryValidation, categ
 // PLAIN ENGLISH: Match /assign-categories/5 and show a checkbox form for tagging project 5 with categories.
 // LOGIC: Registers a GET route capturing the project's ID as :projectId.
 // WHY WE NEED IT: Lets users open the category-assignment checklist for one specific project.
-// LEARNING GAP: The parameter name here is :projectId instead of :id, since this route lives outside the /project path and needs to be explicit about which ID it expects.
+// LEARNING GAP: The parameter name here is :projectId instead of :id, since this route lives outside the /project path and needs tobe explicit about which ID it expects.
 router.get('/assign-categories/:projectId', categoriesController.showAssignCategoriesForm);
 
 // PLAIN ENGLISH: Match the checkbox form submission and save the new full set of category tags for that project.
@@ -123,6 +124,16 @@ router.post('/login', processLoginForm);
 // WHY WE NEED IT: Gives users a way to end their logged-in session.
 // LEARNING GAP: This is a GET because it's triggered by clicking a plain link in the menu, not by submitting a form.
 router.get('/logout', processLogout);
+
+// Protected dashboard route
+
+// PLAIN ENGLISH: When someone opens /dashboard, the server first checks if they are logged in.
+//                Logged in = show the dashboard. Not logged in = send them to the login page.
+// LOGIC: Registers a GET route with two functions in a row: requireLogin runs first, then showDashboard.
+// WHY WE NEED IT: This is what actually protects the page. Typing /dashboard in the address bar still has to pass the lock.
+// LEARNING GAP: Order matters, left to right. If showDashboard came first, the page would load before the check ever happened.
+//               requireLogin only lets the request reach showDashboard by calling next().
+router.get('/dashboard', requireLogin, showDashboard);
 
 // Diagnostic test route
 router.get('/test-error', testErrorPage);

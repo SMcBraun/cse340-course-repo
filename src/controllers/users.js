@@ -87,7 +87,7 @@ const showLoginForm = (req, res) => {
 // PLAIN ENGLISH: Handle the submitted login form: check the email and password,
 //                and if correct, remember the person in the session.
 // LOGIC: Runs on POST /login. Calls authenticateUser. A user object back = success:
-//        save it to req.session.user, flash success, go home.
+//        save it to req.session.user, flash success, go to the dashboard.
 //        null back = failure: flash an error, go back to the login page.
 // WHY WE NEED IT: This is the moment a visitor becomes a logged-in user.
 // LEARNING GAP: req.session.user is the "wristband." Every later request carries
@@ -115,7 +115,14 @@ const processLoginForm = async (req, res) => {
                 console.log('User logged in:', user);
             }
 
-            res.redirect('/');
+            // PLAIN ENGLISH: Send the logged-in person to their dashboard.
+            // LOGIC: Changed in W05 Protected Routes from the home page ('/')
+            //        to the dashboard page.
+            // WHY WE NEED IT: The assignment asks that a successful login lands
+            //                 on the dashboard instead of the home page.
+            // LEARNING GAP: This only runs on success. A failed login still goes
+            //               back to /login (the else below).
+            res.redirect('/dashboard');
         } else {
             req.flash('error', 'Invalid email or password.');
             res.redirect('/login');
@@ -148,8 +155,55 @@ const processLogout = async (req, res) => {
     res.redirect('/login');
 };
 
-// PLAIN ENGLISH: Share all five functions so routes.js can use them.
+// PLAIN ENGLISH: The lock for private pages. It checks if the person is logged
+//                in before the page is allowed to load.
+// LOGIC: This is middleware: it runs BEFORE a page's controller function.
+//        No session, or no user in the session = not logged in:
+//        flash an error and redirect to /login.
+//        Logged in = call next(), which tells Express to move on to the page.
+// WHY WE NEED IT: Hiding a link in the header is not security. Someone can
+//                 still type /dashboard in the address bar. This check runs on
+//                 the server, so typing the address doesn't get them in.
+// LEARNING GAP: "return" before res.redirect matters. Without it, the code keeps
+//               going and also calls next(), so the server tries to send two
+//               responses and crashes ("headers already sent").
+//               req.session.user only exists because processLoginForm saved it
+//               at login. processLogout deletes it, which locks the page again.
+const requireLogin = (req, res, next) => {
+    if (!req.session || !req.session.user) {
+        req.flash('error', 'You must be logged in to access that page.');
+        return res.redirect('/login');
+    }
+    next();
+};
+
+// PLAIN ENGLISH: Show the dashboard page with the logged-in person's name and email.
+// LOGIC: Runs on GET /dashboard, only after the lock lets the request through.
+//        Reads the user from req.session.user and sends title, name, and email
+//        to src/views/dashboard.ejs.
+// WHY WE NEED IT: This is the private page only logged-in users can see.
+// LEARNING GAP: The data comes from the session, not the database. The name and
+//               email were saved at login (the model's SELECT pulled user_id,
+//               name, email, role_id). user.name and user.email match those
+//               column names exactly, so the page won't show blanks.
+//               No "is there a user?" check is needed here, because the lock
+//               already stopped anyone who isn't logged in.
+const showDashboard = (req, res) => {
+    const user = req.session.user;
+    res.render('dashboard', {
+        title: 'Dashboard',
+        name: user.name,
+        email: user.email
+    });
+};
+
+// PLAIN ENGLISH: Share all seven functions so routes.js can use them.
 // LOGIC: Named exports, imported in src/routes.js with the same names in { }.
-// WHY WE NEED IT: Routes connect /register, /login, and /logout to these functions.
+// WHY WE NEED IT: Routes connect /register, /login, /logout, and /dashboard to
+//                 these functions.
 // LEARNING GAP: Names must match exactly in the import, or the server won't start.
-export { showUserRegistrationForm, processUserRegistrationForm, showLoginForm, processLoginForm, processLogout };
+//               The lock is exported like any other function, even though it's
+//               middleware. It goes inside the route line, before showDashboard.
+//               This project uses "export { }" (ES Modules), not the sample's
+//               "module.exports" (the older CommonJS style).
+export { showUserRegistrationForm, processUserRegistrationForm, showLoginForm, processLoginForm, processLogout, requireLogin, showDashboard };
