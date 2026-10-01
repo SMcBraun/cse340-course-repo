@@ -16,10 +16,11 @@ import { testErrorPage } from './controllers/errors.js';
 // PLAIN ENGLISH: Bring in the user functions from the user controller.
 // LOGIC: Named imports from src/controllers/users.js; names match its export exactly.
 //        Covers register, login, logout, the login lock (requireLogin), the dashboard
-//        page, and the admin lock factory (requireRole).
-// WHY WE NEED IT: The /register, /login, /logout, /dashboard, and admin-only routes below need these functions to run.
+//        page, the admin users page (showUsersPage), and the admin lock factory (requireRole).
+// WHY WE NEED IT: The /register, /login, /logout, /dashboard, /users, and admin-only routes below need these functions to run.
 // LEARNING GAP: If a name here is misspelled, the server won't start at all.
-import { showUserRegistrationForm, processUserRegistrationForm, showLoginForm, processLoginForm, processLogout, requireLogin, showDashboard, requireRole } from './controllers/users.js';
+//               showUsersPage was added in the W05 Assignment.
+import { showUserRegistrationForm, processUserRegistrationForm, showLoginForm, processLoginForm, processLogout, requireLogin, showDashboard, showUsersPage, requireRole } from './controllers/users.js';
 
 const router = express.Router();
 
@@ -157,6 +158,21 @@ router.get('/logout', processLogout);
 //               requireLogin only lets the request reach showDashboard by calling next().
 //               The dashboard uses requireLogin (any logged-in user), not the admin lock (admins only).
 router.get('/dashboard', requireLogin, showDashboard);
+
+// Admin-only users page
+
+// PLAIN ENGLISH: When someone opens /users, the server first checks if they are an admin.
+//                Admin = show the list of all registered users.
+//                Logged in but not an admin = send them to the dashboard with a "no permission" message.
+//                Not logged in = send them to the login page.
+// LOGIC: Registers a GET route with two functions in a row: requireRole('admin') runs first, then showUsersPage.
+// WHY WE NEED IT: The W05 Assignment asks for a users page that only admins can open, even if
+//                 someone types /users directly in the address bar.
+// LEARNING GAP: This uses the admin lock, not requireLogin. requireRole already checks for login
+//               first, so adding requireLogin too would just repeat the same check.
+//               Compare with /dashboard just above: any logged-in user can see their own dashboard,
+//               but only admins can see everyone's information.
+router.get('/users', requireRole('admin'), showUsersPage);
 
 // Diagnostic test route
 router.get('/test-error', testErrorPage);

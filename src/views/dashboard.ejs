@@ -5,7 +5,8 @@ COURSE: CSE 340 - Web Backend Development (Week 5)
 ====================================================================
 
 PLAIN ENGLISH: The private dashboard page. It shows the logged-in person's
-               name and email address.
+               name and email address. Admins also see a link to the
+               users page.
 LOGIC: Rendered by showDashboard in src/controllers/users.js, which sends
        title, name, and email. The page only loads if the lock in the
        /dashboard route (requireLogin) finds a user in the session.
@@ -41,6 +42,23 @@ LEARNING GAP: The data comes from req.session.user, saved at login. It is not
     <h2>Dashboard</h2>
     <p>Name: <%= name %></p>
     <p>Email: <%= email %></p>
+
+    <%# PLAIN ENGLISH: Show the "View All Users" link only to admins.
+        LOGIC: user comes from res.locals.user (set in server.js), not from
+               showDashboard. If someone is logged in AND their role_name is
+               'admin', the link is shown. Otherwise it is left out.
+        WHY WE NEED IT: The W05 Assignment asks for a link from the dashboard
+                        to the users page that only admins can see.
+        LEARNING GAP: This only HIDES the link. The real protection is
+                      requireRole('admin') on the /users route in routes.js.
+                      A regular user who types /users is still stopped there.
+                      "user &&" comes first because user is null when nobody
+                      is logged in. On this page someone is always logged in
+                      (requireLogin made sure), but keeping the same pattern
+                      as the other admin links makes the code consistent. %>
+    <% if (user && user.role_name === 'admin') { %>
+        <p><a href="/users">View All Users</a></p>
+    <% } %>
 </main>
 
 <%# PLAIN ENGLISH: Add the shared bottom of the page (site footer).

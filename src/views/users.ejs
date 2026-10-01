@@ -1,0 +1,104 @@
+<%#
+====================================================================
+FILE: src/views/users.ejs
+COURSE: CSE 340 - Web Backend Development (Week 5 Assignment)
+====================================================================
+
+PLAIN ENGLISH: The admin-only page that lists every registered user with
+               their name, email, and role, in a table.
+LOGIC: Rendered by showUsersPage in src/controllers/users.js, which sends
+       title and users (the list from getAllUsers in src/models/users.js).
+       The page only loads if requireRole('admin') on the /users route
+       lets the request through.
+WHY WE NEED IT: The W05 Assignment asks for a page where admins can see
+                everyone registered in the system and their role.
+LEARNING GAP: The data comes from the DATABASE (users table joined to the
+              roles table), not the session. This page never checks the
+              role by itself. The route lock does that before this page is
+              ever rendered. No password hashes are here, because the
+              model's SELECT never asks for them.
+%>
+
+<%# PLAIN ENGLISH: Add the shared top of the page (site header and menu).
+    LOGIC: Pulls in src/views/partials/header.ejs, which also shows flash messages.
+    WHY WE NEED IT: Every page looks the same at the top without copying code.
+    LEARNING GAP: The dash in the opening tag prints the partial's HTML as real
+                  HTML. An equals sign would show the tags as plain text. %>
+<%- include('partials/header') %>
+
+<main>
+    <%# PLAIN ENGLISH: The page title at the top.
+        LOGIC: title comes from showUsersPage (title: 'Registered Users').
+        WHY WE NEED IT: Matches how every other page shows its title.
+        LEARNING GAP: The equals sign tag prints text safely. %>
+    <h1><%= title %></h1>
+
+    <%# PLAIN ENGLISH: If there are users, show them in a table. If not, show a message.
+        LOGIC: users is an array (a list). users.length is how many are in it.
+               More than 0 = build the table. 0 = show "No users found."
+        WHY WE NEED IT: A blank table with only headings would look broken.
+        LEARNING GAP: There will always be at least one user here (the admin
+                      looking at the page), but checking is still good practice. %>
+    <% if (users.length > 0) { %>
+        <p>All accounts registered in the system:</p>
+
+        <%# PLAIN ENGLISH: A box around the table that lets it scroll sideways on small screens.
+            LOGIC: The users-table-wrapper class in main.css adds overflow-x: auto.
+            WHY WE NEED IT: Long email addresses could push the table off a phone screen.
+            LEARNING GAP: The wrapper scrolls, not the whole page, so the layout stays tidy. %>
+        <div class="users-table-wrapper">
+            <table class="users-table">
+                <%# PLAIN ENGLISH: The column headings.
+                    LOGIC: thead holds the header row; th cells are headings.
+                    WHY WE NEED IT: Tells the reader what each column means.
+                    LEARNING GAP: scope="col" tells screen readers that each heading
+                                  belongs to the column below it (accessibility). %>
+                <thead>
+                    <tr>
+                        <th scope="col">Name</th>
+                        <th scope="col">Email</th>
+                        <th scope="col">Role</th>
+                    </tr>
+                </thead>
+
+                <%# PLAIN ENGLISH: One row for each user in the list.
+                    LOGIC: users.forEach runs once per user. Each time, "listedUser" is
+                           one row from the database: { name, email, role_name }.
+                    WHY WE NEED IT: Builds the table automatically, no matter how
+                                    many people have registered.
+                    LEARNING GAP: Inside the loop we call it "listedUser", not "user".
+                                  "user" already means the LOGGED-IN person (from
+                                  res.locals.user in server.js, used by the header).
+                                  Reusing the same name could mix the two up.
+                                  The names after the dot (name, email, role_name)
+                                  must match the model's SELECT column names exactly. %>
+                <tbody>
+                    <% users.forEach(listedUser => { %>
+                        <tr>
+                            <td><%= listedUser.name %></td>
+                            <td><%= listedUser.email %></td>
+                            <td><%= listedUser.role_name %></td>
+                        </tr>
+                    <% }); %>
+                </tbody>
+            </table>
+        </div>
+    <% } else { %>
+        <p>No users found.</p>
+    <% } %>
+
+    <%# PLAIN ENGLISH: A link back to the dashboard.
+        LOGIC: A plain anchor tag pointing at /dashboard.
+        WHY WE NEED IT: Admins reach this page from the dashboard, so this gives
+                        them an easy way back.
+        LEARNING GAP: Only admins can see this page at all, so this link doesn't
+                      need its own role check. %>
+    <p><a href="/dashboard">Back to Dashboard</a></p>
+</main>
+
+<%# PLAIN ENGLISH: Add the shared bottom of the page (site footer).
+    LOGIC: Pulls in src/views/partials/footer.ejs.
+    WHY WE NEED IT: Closes the page the same way as every other page.
+    LEARNING GAP: The header partial opens tags that the footer partial closes,
+                  so both are needed for a complete page. %>
+<%- include('partials/footer') %>

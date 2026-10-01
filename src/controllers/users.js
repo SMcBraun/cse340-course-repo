@@ -13,12 +13,14 @@ COURSE: CSE 340 - Web Backend Development (Week 5)
 //               with bcrypt.compare().
 import bcrypt from 'bcrypt';
 
-// PLAIN ENGLISH: Bring in the model functions that save and check users.
-// LOGIC: createUser (register) and authenticateUser (login) live in
-//        src/models/users.js and read/write the users table.
+// PLAIN ENGLISH: Bring in the model functions that save, check, and list users.
+// LOGIC: createUser (register), authenticateUser (login), and getAllUsers
+//        (admin users page) live in src/models/users.js and read/write the
+//        users and roles tables.
 // WHY WE NEED IT: The controller handles the request; the model handles the SQL.
 // LEARNING GAP: This is MVC. The controller never writes SQL itself.
-import { createUser, authenticateUser } from '../models/users.js';
+//               getAllUsers was added in the W05 Assignment.
+import { createUser, authenticateUser, getAllUsers } from '../models/users.js';
 
 // PLAIN ENGLISH: Show the registration form.
 // LOGIC: Runs on GET /register. Renders src/views/register.ejs with a page title.
@@ -197,6 +199,37 @@ const showDashboard = (req, res) => {
     });
 };
 
+// PLAIN ENGLISH: Show the admin-only page that lists every registered user
+//                with their name, email, and role.
+// LOGIC: Runs on GET /users, only after requireRole('admin') lets the request
+//        through. Calls getAllUsers from the model, then sends title and the
+//        users list to src/views/users.ejs.
+//        If the database fails, log the details, flash an error, and send
+//        the admin back to the dashboard.
+// WHY WE NEED IT: The W05 Assignment asks for a page where admins can see
+//                 everyone who has registered and what role they have.
+// LEARNING GAP: Unlike the dashboard, this data comes from the DATABASE, not
+//               the session. The session only knows about the one person
+//               logged in. To see everyone, we have to ask the database.
+//               That's why this function is "async" and uses "await": the
+//               database takes a moment to answer.
+//               This function does NOT check the role itself. The route
+//               (requireRole) already did that before this ever runs.
+//               The view receives "users" (the whole list) and loops over it.
+const showUsersPage = async (req, res) => {
+    try {
+        const users = await getAllUsers();
+        res.render('users', {
+            title: 'Registered Users',
+            users
+        });
+    } catch (error) {
+        console.error('Error loading users page:', error);
+        req.flash('error', 'An error occurred while loading the users list. Please try again.');
+        res.redirect('/dashboard');
+    }
+};
+
 // PLAIN ENGLISH: The admin lock. It builds a check that only lets in people who
 //                have a certain role (like 'admin').
 // LOGIC: This is a "function factory": the outer function takes the role name
@@ -204,16 +237,22 @@ const showDashboard = (req, res) => {
 //        The inner middleware runs on each request and checks, in order:
 //        1) Not logged in -> flash error, redirect to /login.
 //        2) Logged in, but the session's role_name doesn't match -> flash
-//           "no permission," redirect to the home page.
+//           "no permission," redirect to the dashboard.
 //        3) Role matches -> call next() so the page can load.
 // WHY WE NEED IT: Logging in proves WHO you are (authentication). This checks
 //                 WHAT you're allowed to do (authorization). Only admins should
-//                 add or edit organizations, projects, and categories.
+//                 add or edit organizations, projects, and categories, or see
+//                 the users page.
 // LEARNING GAP: A normal middleware only receives req, res, next. There's no
 //               spot to say WHICH role is needed. The factory solves that: in
 //               routes.js, requireRole('admin') runs once when the server starts
 //               and builds the admin-only check. The same code could build a
 //               check for any other role later.
+//               Changed in the W05 Assignment: a logged-in user without the
+//               role now goes to /dashboard (the team activity sent them to /).
+//               A logged-in person always has a dashboard, so it's a sensible
+//               place to land and read the message. This applies to ALL
+//               admin-only routes, since they all share this one lock.
 //               role_name is in the session because the model's JOIN added it
 //               at login. Anyone logged in before that change must log out and
 //               back in to get it.
@@ -229,8 +268,8 @@ const requireRole = (role) => {
 
         // Check if user's role matches the required role
         if (req.session.user.role_name !== role) {
-            req.flash('error', 'You do not have permission to access this page.');
-            return res.redirect('/');
+            req.flash('error', 'You do not have permission to access that page.');
+            return res.redirect('/dashboard');
         }
 
         // User has required role, continue
@@ -238,13 +277,14 @@ const requireRole = (role) => {
     };
 };
 
-// PLAIN ENGLISH: Share all eight functions so routes.js can use them.
+// PLAIN ENGLISH: Share all nine functions so routes.js can use them.
 // LOGIC: Named exports, imported in src/routes.js with the same names in { }.
-// WHY WE NEED IT: Routes connect /register, /login, /logout, /dashboard, and the
-//                 admin-only pages to these functions.
+// WHY WE NEED IT: Routes connect /register, /login, /logout, /dashboard, /users,
+//                 and the admin-only pages to these functions.
 // LEARNING GAP: Names must match exactly in the import, or the server won't start.
 //               The two locks are exported like any other function, even though
 //               they're middleware. They go inside route lines, before the page.
 //               This project uses "export { }" (ES Modules), not the sample's
 //               "module.exports" (the older CommonJS style).
-export { showUserRegistrationForm, processUserRegistrationForm, showLoginForm, processLoginForm, processLogout, requireLogin, showDashboard, requireRole };
+//               showUsersPage was added in the W05 Assignment.
+export { showUserRegistrationForm, processUserRegistrationForm, showLoginForm, processLoginForm, processLogout, requireLogin, showDashboard, showUsersPage, requireRole };

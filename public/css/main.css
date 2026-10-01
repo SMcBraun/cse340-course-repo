@@ -102,3 +102,43 @@ button[type="submit"]:hover {
     background-color: #d1ecf1;
     border-color: #bee5eb;
 }
+
+
+/* ==================================================================
+   USERS PAGE TABLE (W05 Assignment)
+   PLAIN ENGLISH: Styles for the admin-only users table on /users.
+   LOGIC: The wrapper scrolls sideways on small screens. The table fills
+          the width, cells get padding and light borders, and the header
+          row gets a light background so it stands out.
+   WHY WE NEED IT: Without styles, a table shows with no borders or spacing
+                   and looks unfinished. The assignment grades a professional look.
+   LEARNING GAP: These classes only affect elements with class="users-table"
+                 or class="users-table-wrapper", so no other page changes.
+                 border-collapse: collapse merges the double borders between
+                 cells into single lines.
+   ================================================================== */
+.users-table-wrapper {
+    overflow-x: auto;
+    margin: 1rem 0;
+}
+
+.users-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.users-table th,
+.users-table td {
+    padding: 0.6rem 0.8rem;
+    border: 1px solid #ccc;
+    text-align: left;
+}
+
+.users-table th {
+    background-color: #f0f0f0;
+    font-weight: bold;
+}
+
+.users-table tbody tr:nth-child(even) {
+    background-color: #fafafa;
+}

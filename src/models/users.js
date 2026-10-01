@@ -136,11 +136,41 @@ const authenticateUser = async (email, password) => {
     return user;
 };
 
+// PLAIN ENGLISH: Get every registered user with their name, email, and role name,
+//                sorted A to Z by name.
+// LOGIC: Joins the users table (u) to the roles table (r) on role_id, the same
+//        way findUserByEmail does, but with no WHERE, so every user comes back.
+//        ORDER BY u.name sorts the list alphabetically. Returns an array of rows,
+//        one object per user, like { name, email, role_name }.
+// WHY WE NEED IT: The admin-only users page (W05 Assignment) lists everyone who
+//                 has registered. The controller calls this to get that list.
+// LEARNING GAP: The users table only stores role_id (a number). The JOIN is what
+//               turns the number into a word ('user' or 'admin') for the page.
+//               password_hash is left out ON PURPOSE. This list goes to a web
+//               page, and hashes should never leave the server. Only select the
+//               columns the page actually needs.
+//               No $1 placeholder is needed, because nothing typed by a person
+//               goes into this query.
+//               result.rows (all rows) is returned, not result.rows[0] (just the
+//               first one), because the page needs the whole list.
+const getAllUsers = async () => {
+    const query = `
+        SELECT u.name, u.email, r.role_name
+        FROM users u
+        JOIN roles r ON u.role_id = r.role_id
+        ORDER BY u.name
+    `;
+
+    const result = await db.query(query);
+    return result.rows;
+};
+
 // PLAIN ENGLISH: Share only the functions the controller needs.
-// LOGIC: Named exports; the controller imports them with { createUser, authenticateUser }.
-// WHY WE NEED IT: src/controllers/users.js uses createUser (register) and
-//                 authenticateUser (login).
+// LOGIC: Named exports; the controller imports them with
+//        { createUser, authenticateUser, getAllUsers }.
+// WHY WE NEED IT: src/controllers/users.js uses createUser (register),
+//                 authenticateUser (login), and getAllUsers (admin users page).
 // LEARNING GAP: findUserByEmail and verifyPassword stay private to this file,
 //               as the assignment asks. The name in the curly braces must match
 //               exactly on both sides, or the import fails.
-export { createUser, authenticateUser };
+export { createUser, authenticateUser, getAllUsers };
