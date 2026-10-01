@@ -26,20 +26,25 @@ LEARNING GAP: The data comes from req.session.user, saved at login. It is not
 <%- include('partials/header') %>
 
 <main>
-    <%# PLAIN ENGLISH: The page title at the top.
+    <%# PLAIN ENGLISH: The page title at the top ("Dashboard").
         LOGIC: title comes from showDashboard (title: 'Dashboard').
-        WHY WE NEED IT: Matches how every other page shows its title.
+        WHY WE NEED IT: Matches how every other page shows its title, and is
+                        the "Dashboard" heading the Protected Routes activity asked for.
         LEARNING GAP: The equals sign tag prints text safely. If the text had
                       HTML in it, it would show as plain text, not run. %>
     <h1><%= title %></h1>
 
-    <%# PLAIN ENGLISH: The "Dashboard" heading and the person's info.
+    <%# PLAIN ENGLISH: A smaller heading over the person's info, then their name and email.
         LOGIC: name and email come from req.session.user, passed in by showDashboard.
-        WHY WE NEED IT: The assignment asks for a heading plus the user's name and email.
-        LEARNING GAP: If these showed blank, it would mean the names sent from the
-                      controller didn't match the names used here. They match the
-                      model's column names (name, email). %>
-    <h2>Dashboard</h2>
+        WHY WE NEED IT: Labels the account details clearly under the page title.
+        LEARNING GAP: Changed in the W05 Assignment. This used to say "Dashboard,"
+                      which repeated the h1 above (the h1 already prints "Dashboard"
+                      from title), so the page showed the word twice. A different
+                      label avoids the repeat and looks more professional.
+                      If name or email showed blank, it would mean the names sent
+                      from the controller didn't match the names used here. They
+                      match the model's column names (name, email). %>
+    <h2>Your Account Information</h2>
     <p>Name: <%= name %></p>
     <p>Email: <%= email %></p>
 
